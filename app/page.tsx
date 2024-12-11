@@ -64,37 +64,68 @@ export default function Home() {
     { x: 0.8, y: 0.8 }, // bottom-right
   ];
 
-  const startCamera = async () => {
-    try {
-      const newStream = await navigator.mediaDevices.getUserMedia({
-        video: {
-          facingMode: 'environment',
-          width: { ideal: 1280 },
-          height: { ideal: 720 }
-        }
-      });
+// First, add these state variables to your component
+const [hasPermission, setHasPermission] = useState<boolean>(false);
+const [isSecureContext, setIsSecureContext] = useState<boolean>(false);
 
-      // Enable flashlight if available
+// Add this useEffect to check secure context
+useEffect(() => {
+  if (typeof window !== 'undefined') {
+    setIsSecureContext(window.isSecureContext);
+  }
+}, []);
+
+// Modify your startCamera function
+const startCamera = async () => {
+  try {
+    // First check if we're in a secure context
+    if (!isSecureContext) {
+      console.error('Camera access requires HTTPS');
+      return;
+    }
+
+    // Request camera permission with specific constraints
+    const newStream = await navigator.mediaDevices.getUserMedia({
+      video: {
+        facingMode: 'environment',
+        width: { ideal: 1280 },
+        height: { ideal: 720 },
+        frameRate: { ideal: 30 }
+      }
+    });
+
+    // Set permission state
+    setHasPermission(true);
+
+    // Enable flashlight if available
+    try {
       const track = newStream.getVideoTracks()[0];
       const capabilities = track.getCapabilities() as any;
-
-      if (capabilities.torch) {
-        const constraints = {
+      
+      if (capabilities?.torch) {
+        await track.applyConstraints({
           advanced: [{ torch: true }]
-        } as { advanced: ExtendedMediaTrackConstraintSet[] };
-
-        await track.applyConstraints(constraints);
+        } as any);
       }
-
-
-      setStream(newStream);
-      if (videoRef.current) {
-        videoRef.current.srcObject = newStream;
-      }
-    } catch (err) {
-      console.error('Error accessing camera:', err);
+    } catch (torchError) {
+      console.log('Torch not available:', torchError);
     }
-  };
+
+    // Set up video element
+    if (videoRef.current) {
+      videoRef.current.srcObject = newStream;
+      // Important: Add onloadedmetadata handler
+      videoRef.current.onloadedmetadata = () => {
+        videoRef.current?.play();
+      };
+    }
+
+    setStream(newStream);
+  } catch (err) {
+    console.error('Error accessing camera:', err);
+    setHasPermission(false);
+  }
+};
 
   const stopCamera = () => {
     if (stream) {
