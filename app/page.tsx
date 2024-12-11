@@ -173,7 +173,7 @@ function detectValleys(signal: number[], fps: number = 30): Valley[] {
   const noiseThreshold = Math.max(8, Math.sqrt(variance) * 0.5);
 
   // Main valley detection loop with optimizations
-  const valleyBuffer: Valley[] = [];
+  //const valleys: Valley[] = [];
   const lookback = 2;
   const lookahead = 2;
 
