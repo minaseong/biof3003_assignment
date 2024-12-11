@@ -23,6 +23,11 @@ ChartJS.register(
   Legend
 );
 
+interface ExtendedMediaTrackConstraintSet extends MediaTrackConstraintSet {
+  torch?: boolean;
+}
+
+
 export default function Home() {
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -54,12 +59,16 @@ export default function Home() {
 
       // Enable flashlight if available
       const track = newStream.getVideoTracks()[0];
-      const capabilities = track.getCapabilities();
+      const capabilities = track.getCapabilities() as any; 
+
       if (capabilities.torch) {
-        await track.applyConstraints({
+        const constraints = {
           advanced: [{ torch: true }]
-        });
+        } as { advanced: ExtendedMediaTrackConstraintSet[] };
+        
+        await track.applyConstraints(constraints);
       }
+  
 
       setStream(newStream);
       if (videoRef.current) {
