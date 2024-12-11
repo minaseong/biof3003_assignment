@@ -7,8 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "https": "next dev --experimental-https",
-    "postinstall": "npm install --legacy-peer-deps"
+    "https": "next dev --experimental-https" 
   },
   "dependencies": {
     "@mantine/core": "^7.15.0",
