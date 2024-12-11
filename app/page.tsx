@@ -37,26 +37,24 @@ export default function Home() {
   const [heartRate, setHeartRate] = useState<number>(0);
   const [confidence, setConfidence] = useState<number>(0);
   const [valleys, setValleys] = useState<Valley[]>([]);
-  const [fps, setFps] = useState<number>(30);
+
   const fpsRef = useRef<number>(30);
   const frameTimeRef = useRef<number>(0);
   const framesRef = useRef<number>(0);
-
+  
   // Add FPS detection function
   const measureFPS = () => {
     const now = performance.now();
     const elapsed = now - frameTimeRef.current;
-
+  
     if (elapsed >= 1000) { // Update FPS every second
       const currentFps = Math.round((framesRef.current * 1000) / elapsed);
-      setFps(currentFps);
       fpsRef.current = currentFps;
       framesRef.current = 0;
       frameTimeRef.current = now;
     }
     framesRef.current++;
   };
-
 
   const samplePoints = [
     { x: 0.2, y: 0.2 }, // top-left
