@@ -223,74 +223,141 @@ const [hrv, setHRV] = useState<{ sdnn: number; confidence: number }>({ sdnn: 0, 
     return { bpm, confidence };
   }
 
-  const processFrame = () => {
-    if (!videoRef.current || !canvasRef.current) return;
+// Add this debug helper
+const DEBUG = process.env.NODE_ENV !== 'production';
+const debugLog = (message: string, data?: any) => {
+  if (DEBUG) {
+    console.log(`[DEBUG] ${message}`, data || '');
+  }
+};
 
-    const canvas = canvasRef.current;
-    const context = canvas.getContext('2d');
-    if (!context) return;
+// Modify the processFrame function to include debugging and validation
+const processFrame = () => {
+  if (!videoRef.current || !canvasRef.current) {
+    debugLog('Video or canvas ref not available');
+    return;
+  }
 
+  const canvas = canvasRef.current;
+  const context = canvas.getContext('2d');
+  if (!context) {
+    debugLog('Canvas context not available');
+    return;
+  }
+
+  try {
+    // Draw video frame to canvas
     context.drawImage(videoRef.current, 0, 0, canvas.width, canvas.height);
 
     let rSum = 0, gSum = 0, bSum = 0;
+    let validSamples = 0;
     
-    // Sample from 5 points
-    samplePoints.forEach(point => {
-      const x = Math.floor(point.x * canvas.width);
-      const y = Math.floor(point.y * canvas.height);
-      const pixel = context.getImageData(x, y, 1, 1).data;
-      rSum += pixel[0];
-      gSum += pixel[1];
-      bSum += pixel[2];
+    // Sample points with validation
+    samplePoints.forEach((point, index) => {
+      try {
+        const x = Math.floor(point.x * canvas.width);
+        const y = Math.floor(point.y * canvas.height);
+        
+        // Validate coordinates
+        if (x >= 0 && x < canvas.width && y >= 0 && y < canvas.height) {
+          const pixel = context.getImageData(x, y, 1, 1).data;
+          rSum += pixel[0];
+          gSum += pixel[1];
+          bSum += pixel[2];
+          validSamples++;
 
-      // Visualize sampling points
-      context.beginPath();
-      context.arc(x, y, 5, 0, 2 * Math.PI);
-      context.fillStyle = 'yellow';
-      context.fill();
+          // Visualize sampling points
+          context.beginPath();
+          context.arc(x, y, 5, 0, 2 * Math.PI);
+          context.fillStyle = 'yellow';
+          context.fill();
+        }
+      } catch (err) {
+        debugLog(`Error processing sample point ${index}:`, err);
+      }
     });
 
-    // Calculate PPG signal
-    const ppgSignal = (3 * rSum - bSum - gSum) / samplePoints.length;
-    
-    setPpgData(prev => {
-      const newData = [...prev.slice(-300), ppgSignal];
-      const newValleys = detectValleys(newData);
-      setValleys(newValleys);
-      
-      const { bpm, confidence } = calculateHeartRate(newValleys);
-      setHeartRate(bpm);
-      setConfidence(confidence);
-      
-      // Add HRV calculation
-      const hrvValues = calculateHRV(newValleys);
-      setHRV(hrvValues);
-      
-      return newData;
-    });
-  };
-
-  useEffect(() => {
-    let animationFrame: number;
-    
-    if (isRecording) {
-      startCamera();
-      const animate = () => {
-        processFrame();
-        animationFrame = requestAnimationFrame(animate);
-      };
-      animationFrame = requestAnimationFrame(animate);
-    } else {
-      stopCamera();
+    // Ensure we have valid samples
+    if (validSamples === 0) {
+      debugLog('No valid samples collected');
+      return;
     }
 
-    return () => {
-      if (animationFrame) {
-        cancelAnimationFrame(animationFrame);
+    // Calculate PPG signal with validation
+    const ppgSignal = (3 * rSum - bSum - gSum) / validSamples;
+    
+    setPpgData(prev => {
+      try {
+        const newData = [...prev.slice(-300), ppgSignal];
+        debugLog('PPG Data length:', newData.length);
+        
+        // Only process if we have enough data
+        if (newData.length >= 10) {
+          const newValleys = detectValleys(newData);
+          debugLog('Detected valleys:', newValleys.length);
+          setValleys(newValleys);
+          
+          const { bpm, confidence } = calculateHeartRate(newValleys);
+          debugLog('Calculated BPM:', bpm);
+          debugLog('Confidence:', confidence);
+          
+          setHeartRate(bpm);
+          setConfidence(confidence);
+          
+          // Calculate HRV if present
+          if (typeof calculateHRV === 'function') {
+            const hrvValues = calculateHRV(newValleys);
+            setHRV(hrvValues);
+          }
+        }
+        
+        return newData;
+      } catch (err) {
+        debugLog('Error processing PPG data:', err);
+        return prev;
       }
-      stopCamera();
-    };
-  }, [isRecording]);
+    });
+  } catch (err) {
+    debugLog('Error in processFrame:', err);
+  }
+};
+
+// Add error boundary to your component
+useEffect(() => {
+  let animationFrame: number;
+  
+  const processFrameWithErrorHandling = () => {
+    try {
+      processFrame();
+      animationFrame = requestAnimationFrame(processFrameWithErrorHandling);
+    } catch (err) {
+      debugLog('Error in animation frame:', err);
+      // Attempt to recover
+      setTimeout(() => {
+        animationFrame = requestAnimationFrame(processFrameWithErrorHandling);
+      }, 1000);
+    }
+  };
+  
+  if (isRecording) {
+    debugLog('Starting recording');
+    startCamera().then(() => {
+      animationFrame = requestAnimationFrame(processFrameWithErrorHandling);
+    }).catch(err => {
+      debugLog('Error starting camera:', err);
+    });
+  } else {
+    debugLog('Stopping recording');
+    stopCamera();
+  }
+
+  return () => {
+    if (animationFrame) {
+      cancelAnimationFrame(animationFrame);
+    }
+    stopCamera();
+  };
+}, [isRecording]);
 
   const chartData = {
     labels: Array.from({ length: ppgData.length }, (_, i) => i.toString()),
