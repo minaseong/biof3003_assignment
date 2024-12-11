@@ -272,17 +272,16 @@ const debugLog = (message: string, data?: any) => {
   }
 };
 
-// Modify the processFrame function to include debugging and validation
 const processFrame = () => {
   if (!videoRef.current || !canvasRef.current) {
-    debugLog('Video or canvas ref not available');
+    console.error('Video or canvas ref not available');
     return;
   }
 
   const canvas = canvasRef.current;
   const context = canvas.getContext('2d');
   if (!context) {
-    debugLog('Canvas context not available');
+    console.error('Canvas context not available');
     return;
   }
 
@@ -307,6 +306,15 @@ const processFrame = () => {
           bSum += pixel[2];
           validSamples++;
 
+          // Log sample point data
+          console.log(`Sample ${index}:`, {
+            x,
+            y,
+            r: pixel[0],
+            g: pixel[1],
+            b: pixel[2]
+          });
+
           // Visualize sampling points
           context.beginPath();
           context.arc(x, y, 5, 0, 2 * Math.PI);
@@ -314,33 +322,35 @@ const processFrame = () => {
           context.fill();
         }
       } catch (err) {
-        debugLog(`Error processing sample point ${index}:`, err);
+        console.error(`Error processing sample point ${index}:`, err);
       }
     });
 
     // Ensure we have valid samples
     if (validSamples === 0) {
-      debugLog('No valid samples collected');
+      console.error('No valid samples collected');
       return;
     }
 
     // Calculate PPG signal with validation
     const ppgSignal = (3 * rSum - bSum - gSum) / validSamples;
     
+    console.log('PPG Signal:', ppgSignal);
+
     setPpgData(prev => {
       try {
         const newData = [...prev.slice(-300), ppgSignal];
-        debugLog('PPG Data length:', newData.length);
+        console.log('New data length:', newData.length);
         
         // Only process if we have enough data
         if (newData.length >= 10) {
           const newValleys = detectValleys(newData);
-          debugLog('Detected valleys:', newValleys.length);
+          console.log('Detected valleys:', newValleys.length);
           setValleys(newValleys);
           
           const { bpm, confidence } = calculateHeartRate(newValleys);
-          debugLog('Calculated BPM:', bpm);
-          debugLog('Confidence:', confidence);
+          console.log('Calculated BPM:', bpm);
+          console.log('Confidence:', confidence);
           
           setHeartRate(bpm);
           setConfidence(confidence);
@@ -354,14 +364,15 @@ const processFrame = () => {
         
         return newData;
       } catch (err) {
-        debugLog('Error processing PPG data:', err);
+        console.error('Error processing PPG data:', err);
         return prev;
       }
     });
   } catch (err) {
-    debugLog('Error in processFrame:', err);
+    console.error('Error in processFrame:', err);
   }
 };
+
 
 // Add error boundary to your component
 useEffect(() => {
