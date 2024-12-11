@@ -61,6 +61,7 @@ export default function Home() {
   ];
 
 // First, add these state variables to your component
+const [hasPermission, setHasPermission] = useState<boolean>(false);
 const [isSecureContext, setIsSecureContext] = useState<boolean>(false);
 
 // Add this useEffect to check secure context
@@ -91,6 +92,7 @@ const startCamera = async () => {
 
     // Set permission state
     setHasPermission(true);
+    console.log(hasPermission)
 
     // Enable flashlight if available
     try {
