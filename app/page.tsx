@@ -32,8 +32,7 @@ export default function Home() {
   const [heartRate, setHeartRate] = useState<number>(0);
   const [confidence, setConfidence] = useState<number>(0);
   const [valleys, setValleys] = useState<Valley[]>([]);
-  const [rmssd, setRMSSD] = useState<number>(0);
-  const [sdnn, setSDNN] = useState<number>(0);
+
 
   const samplePoints = [
     { x: 0.2, y: 0.2 }, // top-left
@@ -82,12 +81,6 @@ export default function Home() {
     value: number;
     index: number;
   }
-
-  interface RRInterval {
-    duration: number;  // in milliseconds
-    timestamp: Date;
-  }
-  
 // Add this function outside detectValleys
 function calculateHRV(valleys: Valley[]): {
   sdnn: number,
@@ -118,7 +111,6 @@ function calculateHRV(valleys: Valley[]): {
 
   // Calculate confidence based on number of valid intervals and their consistency
   const minIntervals = 5; // Minimum intervals for reliable HRV
-  const maxIntervals = 30; // Maximum intervals considered for confidence calculation
   const intervalConfidence = Math.min(
     100,
     (rrIntervals.length / minIntervals) * 100
@@ -143,7 +135,6 @@ const [hrv, setHRV] = useState<{ sdnn: number; confidence: number }>({ sdnn: 0, 
     const valleys: Valley[] = [];
     const minValleyDistance = 0.4; // Increased from 0.3 to 0.4 seconds (150 BPM max)
     let lastValleyTime = 0;
-    const rrIntervals: RRInterval[] = [];
 
     // Increase window size for better smoothing
     const windowSize = 7; // Increased from 5
@@ -186,7 +177,7 @@ const [hrv, setHRV] = useState<{ sdnn: number; confidence: number }>({ sdnn: 0, 
     return valleys;
   }
   
-  function calculateHeartRate(valleys: Valley[], windowDuration: number = 10): {
+  function calculateHeartRate(valleys: Valley[]): {
     bpm: number,
     confidence: number
   } {
@@ -370,7 +361,7 @@ const [hrv, setHRV] = useState<{ sdnn: number; confidence: number }>({ sdnn: 0, 
                 height={720}
               />
               {/* Overlay Elements */}
-              <div className="absolute top-4 left-4 text-sm text-cyan-600">
+              <div className="absolute top-4 left-4 text-sm text-cyan-100">
                 CAMERA FEED
               </div>
             </div>
