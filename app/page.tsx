@@ -23,10 +23,6 @@ ChartJS.register(
   Legend
 );
 
-interface ExtendedMediaTrackConstraintSet extends MediaTrackConstraintSet {
-  torch?: boolean;
-}
-
 
 export default function Home() {
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -65,7 +61,6 @@ export default function Home() {
   ];
 
 // First, add these state variables to your component
-const [hasPermission, setHasPermission] = useState<boolean>(false);
 const [isSecureContext, setIsSecureContext] = useState<boolean>(false);
 
 // Add this useEffect to check secure context
