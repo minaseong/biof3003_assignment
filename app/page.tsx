@@ -140,51 +140,92 @@ function calculateHRV(valleys: Valley[]): {
 
 // Modify your component to include HRV state
 const [hrv, setHRV] = useState<{ sdnn: number; confidence: number }>({ sdnn: 0, confidence: 0 });
-  function detectValleys(signal: number[], fps: number = 30): Valley[] {
-    const valleys: Valley[] = [];
-    const minValleyDistance = 0.4; // Increased from 0.3 to 0.4 seconds (150 BPM max)
-    let lastValleyTime = 0;
 
-    // Increase window size for better smoothing
-    const windowSize = 7; // Increased from 5
-    const movingAvg = signal.map((val, idx, arr) => {
-      const start = Math.max(0, idx - windowSize);
-      const end = Math.min(arr.length, idx + windowSize + 1);
-      const sum = arr.slice(start, end).reduce((a, b) => a + b, 0);
-      return sum / (end - start);
-    });
-  
-    // Increase noise threshold
-    const noiseThreshold = 8; // Increased from 5
-  
-    for (let i = 2; i < signal.length - 2; i++) {
-      const currentValue = signal[i];
-      const currentTime = i / fps;
-  
-      // More strict valley detection criteria
-      if (currentValue < signal[i - 1] && 
-          currentValue < signal[i - 2] && 
-          currentValue < signal[i + 1] && 
-          currentValue < signal[i + 2] &&
-          currentValue < movingAvg[i]) { // Added condition to be below moving average
-        
-        if (currentTime - lastValleyTime >= minValleyDistance) {
-          const localAmplitude = Math.abs(currentValue - movingAvg[i]);
-  
-          if (localAmplitude > noiseThreshold) {
-            valleys.push({
-              timestamp: new Date(Date.now() - ((signal.length - i) / fps) * 1000),
-              value: currentValue,
-              index: i
-            });
-            lastValleyTime = currentTime;
-          }
-        }
+function detectValleys(signal: number[], fps: number = 30): Valley[] {
+  // Early return if signal is too short
+  if (signal.length < 5) return [];
+
+  const valleys: Valley[] = [];
+  const minValleyDistance = 0.4; // 150 BPM max
+  let lastValleyTime = 0;
+
+  // Pre-calculate moving average with optimized window
+  const windowSize = 7;
+  const halfWindow = Math.floor(windowSize / 2);
+  const movingAvg = new Float32Array(signal.length);
+  let sum = 0;
+
+  // Initialize first window
+  for (let i = 0; i < Math.min(windowSize, signal.length); i++) {
+    sum += signal[i];
+  }
+  movingAvg[halfWindow] = sum / windowSize;
+
+  // Calculate rest of moving average with sliding window
+  for (let i = windowSize; i < signal.length; i++) {
+    sum = sum - signal[i - windowSize] + signal[i];
+    movingAvg[i - halfWindow] = sum / windowSize;
+  }
+
+  // Noise threshold based on signal variance
+  const signalMean = signal.reduce((a, b) => a + b, 0) / signal.length;
+  const variance = signal.reduce((a, b) => a + Math.pow(b - signalMean, 2), 0) / signal.length;
+  const noiseThreshold = Math.max(8, Math.sqrt(variance) * 0.5);
+
+  // Main valley detection loop with optimizations
+  const valleyBuffer: Valley[] = [];
+  const lookback = 2;
+  const lookahead = 2;
+
+  for (let i = lookback; i < signal.length - lookahead; i++) {
+    const currentValue = signal[i];
+    const currentTime = i / fps;
+
+    // Skip if minimum time hasn't elapsed
+    if (currentTime - lastValleyTime < minValleyDistance) {
+      continue;
+    }
+
+    // Quick check for potential valley
+    if (currentValue >= signal[i - 1]) {
+      continue;
+    }
+
+    // Comprehensive valley check
+    let isValley = true;
+    for (let j = 1; j <= lookback; j++) {
+      if (currentValue >= signal[i - j]) {
+        isValley = false;
+        break;
+      }
+    }
+    
+    if (!isValley) continue;
+
+    for (let j = 1; j <= lookahead; j++) {
+      if (currentValue >= signal[i + j]) {
+        isValley = false;
+        break;
       }
     }
 
-    return valleys;
+    if (!isValley || currentValue >= movingAvg[i]) continue;
+
+    // Amplitude check
+    const localAmplitude = Math.abs(currentValue - movingAvg[i]);
+    if (localAmplitude <= noiseThreshold) continue;
+
+    // Valid valley found
+    valleys.push({
+      timestamp: new Date(Date.now() - ((signal.length - i) / fps) * 1000),
+      value: currentValue,
+      index: i
+    });
+    lastValleyTime = currentTime;
   }
+
+  return valleys;
+}
   
   function calculateHeartRate(valleys: Valley[]): {
     bpm: number,
