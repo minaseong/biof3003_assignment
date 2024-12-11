@@ -141,7 +141,7 @@ function calculateHRV(valleys: Valley[]): {
 // Modify your component to include HRV state
 const [hrv, setHRV] = useState<{ sdnn: number; confidence: number }>({ sdnn: 0, confidence: 0 });
 
-function detectValleys(signal: number[], fps: number = 30): Valley[] {
+function detectValleys(signal: number[], fps: number = 24): Valley[] {
   // Early return if signal is too short
   if (signal.length < 5) return [];
 
