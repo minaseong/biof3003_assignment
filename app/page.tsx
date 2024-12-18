@@ -33,6 +33,7 @@ export default function Home() {
   const [heartRate, setHeartRate] = useState<number>(0);
   const [confidence, setConfidence] = useState<number>(0);
   const [valleys, setValleys] = useState<Valley[]>([]);
+  const [signalCombination, setSignalCombination] = useState<string>('default');
 
   const fpsRef = useRef<number>(30);
   const frameTimeRef = useRef<number>(0);
@@ -333,8 +334,26 @@ function isLocalMinimum(signal: number[], index: number, windowSize: number): bo
         return;
       }
 
-      // Calculate PPG signal with validation
-      const ppgSignal = (3 * rSum - bSum - gSum) / validSamples;
+      let ppgSignal;
+      switch (signalCombination) {
+        case 'redOnly':
+          ppgSignal = rSum / validSamples;
+          break;
+        case 'greenOnly':
+          ppgSignal = gSum / validSamples;
+          break;
+        case 'blueOnly':
+          ppgSignal = bSum / validSamples;
+          break;
+        case 'redMinusBlue':
+          ppgSignal = (rSum - bSum) / validSamples;
+          break;
+        case 'custom':
+          ppgSignal = (3 * rSum - bSum - gSum) / validSamples;
+          break;
+        default:
+          ppgSignal = (2 * rSum - gSum - bSum) / validSamples;
+      }
 
       console.log('PPG Signal:', ppgSignal);
 
@@ -494,6 +513,7 @@ function isLocalMinimum(signal: number[], index: number, windowSize: number): bo
               </div>
             </div>
 
+
             {/* Metrics Cards */}
             <div className="grid grid-cols-2 gap-4">
               {/* Heart Rate Card */}
@@ -541,6 +561,72 @@ function isLocalMinimum(signal: number[], index: number, windowSize: number): bo
               ...chartOptions
             }} />
           </div>
+        </div>
+      </div>
+                  {/* Signal Combination Selection */}
+                  <div className="mt-4 p-4 bg-white rounded-xl border-2 border-cyan-500">
+        <h3 className="text-lg font-semibold mb-2">Signal Combination</h3>
+        <div className="space-y-2">
+          <label className="flex items-center">
+            <input
+              type="radio"
+              value="default"
+              checked={signalCombination === 'default'}
+              onChange={(e) => setSignalCombination(e.target.value)}
+              className="mr-2"
+            />
+            Default (2R - G - B)
+          </label>
+          <label className="flex items-center">
+            <input
+              type="radio"
+              value="redOnly"
+              checked={signalCombination === 'redOnly'}
+              onChange={(e) => setSignalCombination(e.target.value)}
+              className="mr-2"
+            />
+            Red Only
+          </label>
+          <label className="flex items-center">
+            <input
+              type="radio"
+              value="greenOnly"
+              checked={signalCombination === 'greenOnly'}
+              onChange={(e) => setSignalCombination(e.target.value)}
+              className="mr-2"
+            />
+            Green Only
+          </label>
+          <label className="flex items-center">
+            <input
+              type="radio"
+              value="blueOnly"
+              checked={signalCombination === 'blueOnly'}
+              onChange={(e) => setSignalCombination(e.target.value)}
+              className="mr-2"
+            />
+            Blue Only
+          </label>
+          <label className="flex items-center">
+            <input
+              type="radio"
+              value="redMinusBlue"
+              checked={signalCombination === 'redMinusBlue'}
+              onChange={(e) => setSignalCombination(e.target.value)}
+              className="mr-2"
+            />
+            Red - Blue
+          </label>
+          <label className="flex items-center">
+            <input
+              type="radio"
+              value="custom"
+              checked={signalCombination === 'custom'}
+              onChange={(e) => setSignalCombination(e.target.value)}
+              className="mr-2"
+            />
+            Custom (3R - G - B)
+          </label>
         </div>
       </div>
     </div>
