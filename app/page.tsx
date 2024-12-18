@@ -187,52 +187,43 @@ const startCamera = async () => {
   const [hrv, setHRV] = useState<{ sdnn: number; confidence: number }>({ sdnn: 0, confidence: 0 });
 
  // Original detectValleys with adaptive FPS
-function detectValleys(signal: number[], providedFps: number = fpsRef.current): Valley[] {
+ function detectValleys(signal: number[], providedFps: number = fpsRef.current): Valley[] {
   const valleys: Valley[] = [];
-  const minValleyDistance = 0.4; // 150 BPM max
-  let lastValleyTime = 0;
+  const minValleyDistance = Math.floor(providedFps * 0.4); // Minimum 0.4 seconds between valleys
+  const windowSize = Math.floor(providedFps * 0.5); // 0.5 second window for smoothing
+
+  // Normalize the smoothed signal
+  const normalizedSignal = normalizeSignal(signal);
   
-  // Increase window size for better smoothing
-  const windowSize = 7;
-  const movingAvg = signal.map((val, idx, arr) => {
-    const start = Math.max(0, idx - windowSize);
-    const end = Math.min(arr.length, idx + windowSize + 1);
-    const sum = arr.slice(start, end).reduce((a, b) => a + b, 0);
-    return sum / (end - start);
-  });
-
-  // Increase noise threshold
-  const noiseThreshold = 8;
-
-  for (let i = 2; i < signal.length - 2; i++) {
-    const currentValue = signal[i];
-    const currentTime = i / providedFps; // Use provided FPS instead of fixed 30
-
-    // More strict valley detection criteria
-    if (currentValue < signal[i - 1] && 
-        currentValue < signal[i - 2] && 
-        currentValue < signal[i + 1] && 
-        currentValue < signal[i + 2] &&
-        currentValue < movingAvg[i]) {
-      
-      if (currentTime - lastValleyTime >= minValleyDistance) {
-        const localAmplitude = Math.abs(currentValue - movingAvg[i]);
-
-        if (localAmplitude > noiseThreshold) {
-          valleys.push({
-            // Adjust timestamp calculation using actual FPS
-            timestamp: new Date(Date.now() - ((signal.length - i) / providedFps) * 1000),
-            value: currentValue,
-            index: i
-          });
-          lastValleyTime = currentTime;
-        }
+  // Find local minima
+  for (let i = windowSize; i < normalizedSignal.length - windowSize; i++) {
+    if (isLocalMinimum(normalizedSignal, i, windowSize)) {
+      if (valleys.length === 0 || i - valleys[valleys.length - 1].index >= minValleyDistance) {
+        valleys.push({
+          timestamp: new Date(Date.now() - ((signal.length - i) / providedFps) * 1000),
+          value: signal[i],
+          index: i
+        });
       }
     }
   }
-
+  
   return valleys;
 }
+
+function normalizeSignal(signal: number[]): number[] {
+  const min = Math.min(...signal);
+  const max = Math.max(...signal);
+  return signal.map(value => (value - min) / (max - min));
+}
+
+function isLocalMinimum(signal: number[], index: number, windowSize: number): boolean {
+  const leftWindow = signal.slice(Math.max(0, index - windowSize), index);
+  const rightWindow = signal.slice(index + 1, Math.min(signal.length, index + windowSize + 1));
+  
+  return Math.min(...leftWindow) >= signal[index] && Math.min(...rightWindow) > signal[index];
+}
+
   
   function calculateHeartRate(valleys: Valley[]): {
     bpm: number,
