@@ -34,7 +34,7 @@ export default function Home() {
   const [confidence, setConfidence] = useState<number>(0);
   const [valleys, setValleys] = useState<Valley[]>([]);
   const [signalCombination, setSignalCombination] = useState<string>('default');
-  const [showConfig, setShowConfig] = useState<Boolean>(false);
+  const [showConfig, setShowConfig] = useState<boolean>(false);
   const fpsRef = useRef<number>(30);
   const frameTimeRef = useRef<number>(0);
   const framesRef = useRef<number>(0);
