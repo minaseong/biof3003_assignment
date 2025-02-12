@@ -7,12 +7,14 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "https": "next dev --experimental-https" 
+    "https": "next dev --experimental-https"
   },
   "dependencies": {
     "@mantine/core": "^7.15.0",
     "@mantine/hooks": "^7.15.0",
     "chart.js": "^4.4.7",
+    "mongodb": "^6.13.0",
+    "mongoose": "^8.9.6",
     "next": "15.0.4",
     "react": "^19.0.0",
     "react-chartjs-2": "^5.2.0",

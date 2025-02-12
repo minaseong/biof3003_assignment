@@ -34,16 +34,16 @@ export default function Home() {
   const [confidence, setConfidence] = useState<number>(0);
   const [valleys, setValleys] = useState<Valley[]>([]);
   const [signalCombination, setSignalCombination] = useState<string>('default');
-
+  const [showConfig, setShowConfig] = useState<Boolean>(false);
   const fpsRef = useRef<number>(30);
   const frameTimeRef = useRef<number>(0);
   const framesRef = useRef<number>(0);
-  
+
   // Add FPS detection function
   const measureFPS = () => {
     const now = performance.now();
     const elapsed = now - frameTimeRef.current;
-  
+
     if (elapsed >= 1000) { // Update FPS every second
       const currentFps = Math.round((framesRef.current * 1000) / elapsed);
       fpsRef.current = currentFps;
@@ -61,69 +61,69 @@ export default function Home() {
     { x: 0.8, y: 0.8 }, // bottom-right
   ];
 
-// First, add these state variables to your component
-const [hasPermission, setHasPermission] = useState<boolean>(false);
-const [isSecureContext, setIsSecureContext] = useState<boolean>(false);
+  // First, add these state variables to your component
+  const [hasPermission, setHasPermission] = useState<boolean>(false);
+  const [isSecureContext, setIsSecureContext] = useState<boolean>(false);
 
-// Add this useEffect to check secure context
-useEffect(() => {
-  if (typeof window !== 'undefined') {
-    setIsSecureContext(window.isSecureContext);
-  }
-}, []);
-
-// Modify your startCamera function
-const startCamera = async () => {
-  try {
-    // First check if we're in a secure context
-    if (!isSecureContext) {
-      console.error('Camera access requires HTTPS');
-      return;
+  // Add this useEffect to check secure context
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      setIsSecureContext(window.isSecureContext);
     }
+  }, []);
 
-    // Request camera permission with specific constraints
-    const newStream = await navigator.mediaDevices.getUserMedia({
-      video: {
-        facingMode: 'environment',
-        width: { ideal: 1280 },
-        height: { ideal: 720 },
-        frameRate: { ideal: 30 }
-      }
-    });
-
-    // Set permission state
-    setHasPermission(true);
-    console.log(hasPermission)
-
-    // Enable flashlight if available
+  // Modify your startCamera function
+  const startCamera = async () => {
     try {
-      const track = newStream.getVideoTracks()[0];
-      const capabilities = track.getCapabilities() as any;
-      
-      if (capabilities?.torch) {
-        await track.applyConstraints({
-          advanced: [{ torch: true }]
-        } as any);
+      // First check if we're in a secure context
+      if (!isSecureContext) {
+        console.error('Camera access requires HTTPS');
+        return;
       }
-    } catch (torchError) {
-      console.log('Torch not available:', torchError);
-    }
 
-    // Set up video element
-    if (videoRef.current) {
-      videoRef.current.srcObject = newStream;
-      // Important: Add onloadedmetadata handler
-      videoRef.current.onloadedmetadata = () => {
-        videoRef.current?.play();
-      };
-    }
+      // Request camera permission with specific constraints
+      const newStream = await navigator.mediaDevices.getUserMedia({
+        video: {
+          facingMode: 'environment',
+          width: { ideal: 1280 },
+          height: { ideal: 720 },
+          frameRate: { ideal: 30 }
+        }
+      });
 
-    setStream(newStream);
-  } catch (err) {
-    console.error('Error accessing camera:', err);
-    setHasPermission(false);
-  }
-};
+      // Set permission state
+      setHasPermission(true);
+      console.log(hasPermission)
+
+      // Enable flashlight if available
+      try {
+        const track = newStream.getVideoTracks()[0];
+        const capabilities = track.getCapabilities() as any;
+
+        if (capabilities?.torch) {
+          await track.applyConstraints({
+            advanced: [{ torch: true }]
+          } as any);
+        }
+      } catch (torchError) {
+        console.log('Torch not available:', torchError);
+      }
+
+      // Set up video element
+      if (videoRef.current) {
+        videoRef.current.srcObject = newStream;
+        // Important: Add onloadedmetadata handler
+        videoRef.current.onloadedmetadata = () => {
+          videoRef.current?.play();
+        };
+      }
+
+      setStream(newStream);
+    } catch (err) {
+      console.error('Error accessing camera:', err);
+      setHasPermission(false);
+    }
+  };
 
   const stopCamera = () => {
     if (stream) {
@@ -187,45 +187,45 @@ const startCamera = async () => {
   // Modify your component to include HRV state
   const [hrv, setHRV] = useState<{ sdnn: number; confidence: number }>({ sdnn: 0, confidence: 0 });
 
- // Original detectValleys with adaptive FPS
- function detectValleys(signal: number[], providedFps: number = fpsRef.current): Valley[] {
-  const valleys: Valley[] = [];
-  const minValleyDistance = Math.floor(providedFps * 0.4); // Minimum 0.4 seconds between valleys
-  const windowSize = Math.floor(providedFps * 0.5); // 0.5 second window for smoothing
+  // Original detectValleys with adaptive FPS
+  function detectValleys(signal: number[], providedFps: number = fpsRef.current): Valley[] {
+    const valleys: Valley[] = [];
+    const minValleyDistance = Math.floor(providedFps * 0.4); // Minimum 0.4 seconds between valleys
+    const windowSize = Math.floor(providedFps * 0.5); // 0.5 second window for smoothing
 
-  // Normalize the smoothed signal
-  const normalizedSignal = normalizeSignal(signal);
-  
-  // Find local minima
-  for (let i = windowSize; i < normalizedSignal.length - windowSize; i++) {
-    if (isLocalMinimum(normalizedSignal, i, windowSize)) {
-      if (valleys.length === 0 || i - valleys[valleys.length - 1].index >= minValleyDistance) {
-        valleys.push({
-          timestamp: new Date(Date.now() - ((signal.length - i) / providedFps) * 1000),
-          value: signal[i],
-          index: i
-        });
+    // Normalize the smoothed signal
+    const normalizedSignal = normalizeSignal(signal);
+
+    // Find local minima
+    for (let i = windowSize; i < normalizedSignal.length - windowSize; i++) {
+      if (isLocalMinimum(normalizedSignal, i, windowSize)) {
+        if (valleys.length === 0 || i - valleys[valleys.length - 1].index >= minValleyDistance) {
+          valleys.push({
+            timestamp: new Date(Date.now() - ((signal.length - i) / providedFps) * 1000),
+            value: signal[i],
+            index: i
+          });
+        }
       }
     }
+
+    return valleys;
   }
-  
-  return valleys;
-}
 
-function normalizeSignal(signal: number[]): number[] {
-  const min = Math.min(...signal);
-  const max = Math.max(...signal);
-  return signal.map(value => (value - min) / (max - min));
-}
+  function normalizeSignal(signal: number[]): number[] {
+    const min = Math.min(...signal);
+    const max = Math.max(...signal);
+    return signal.map(value => (value - min) / (max - min));
+  }
 
-function isLocalMinimum(signal: number[], index: number, windowSize: number): boolean {
-  const leftWindow = signal.slice(Math.max(0, index - windowSize), index);
-  const rightWindow = signal.slice(index + 1, Math.min(signal.length, index + windowSize + 1));
-  
-  return Math.min(...leftWindow) >= signal[index] && Math.min(...rightWindow) > signal[index];
-}
+  function isLocalMinimum(signal: number[], index: number, windowSize: number): boolean {
+    const leftWindow = signal.slice(Math.max(0, index - windowSize), index);
+    const rightWindow = signal.slice(index + 1, Math.min(signal.length, index + windowSize + 1));
 
-  
+    return Math.min(...leftWindow) >= signal[index] && Math.min(...rightWindow) > signal[index];
+  }
+
+
   function calculateHeartRate(valleys: Valley[]): {
     bpm: number,
     confidence: number
@@ -431,6 +431,36 @@ function isLocalMinimum(signal: number[], index: number, windowSize: number): bo
     };
   }, [isRecording]);
 
+  // 1. Add this function inside your Home component (above the return statement)
+  const pushDataToMongo = async () => {
+    // Prepare the record data – adjust or add additional fields as needed
+    const recordData = {
+      heartRate: heartRate || 0,    // Fallback to 0 if undefined
+      hrv: hrv || { sdnn: 0, confidence: 0 },
+      confidence: confidence || 0,
+      ppgData: ppgData || [],
+      timestamp: new Date()
+    };
+
+
+    try {
+      // Make a POST request to your backend endpoint that handles saving to MongoDB
+      const response = await fetch('/api/save-record', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(recordData)
+      });
+      const result = await response.json();
+      console.log('Record saved:', result);
+    } catch (error) {
+      console.error('Error saving record:', error);
+    }
+  };
+
+
+
   const chartData = {
     labels: Array.from({ length: ppgData.length }, (_, i) => i.toString()),
     datasets: [
@@ -480,8 +510,8 @@ function isLocalMinimum(signal: number[], index: number, windowSize: number): bo
           <button
             onClick={() => setIsRecording(!isRecording)}
             className={`p-3 rounded-lg text-sm transition-all duration-300 ${isRecording
-                ? 'bg-red-500 hover:bg-red-600 text-white'
-                : 'bg-cyan-500 hover:bg-cyan-600 text-white'
+              ? 'bg-red-500 hover:bg-red-600 text-white'
+              : 'bg-cyan-500 hover:bg-cyan-600 text-white'
               }`}
           >
             {isRecording ? '■ STOP' : '● START'} RECORDING
@@ -555,18 +585,37 @@ function isLocalMinimum(signal: number[], index: number, windowSize: number): bo
               </div>
             </div>
           </div>
-          <div className="p-2  bg-white rounded-xl border-2 border-cyan-500 ">
-            <div className="text-sm text-cyan-600">PPG SIGNAL</div>
+          <div className="p-2 bg-white rounded-xl border-2 border-cyan-500 flex flex-col">
+
+            <div className="mt-4">
+
+            </div>
+            <div className="text-sm text-cyan-600 self-start ml-4 ">PPG SIGNAL</div>
             <Line data={chartData} options={{
               ...chartOptions
             }} />
+                        <button
+              onClick={pushDataToMongo}
+              className="px-4 py-2 m-2 bg-cyan-500 text-white  rounded hover:bg-cyan-600"
+            >
+              Save Data to MongoDB
+            </button>
           </div>
         </div>
       </div>
-                  {/* Signal Combination Selection */}
-                  <div className="mt-4 p-4 bg-white rounded-xl border-2 border-cyan-500">
+      {/* Signal Combination Selection */}
+      <div className="mt-4 p-4 bg-white rounded-xl border-2 border-cyan-500 flex flex-col">
         <h3 className="text-lg font-semibold mb-2">Signal Combination</h3>
-        <div className="space-y-2">
+        <button
+      onClick={() => setShowConfig(prev => !prev)}
+      className="px-4 py-2 bg-cyan-500 text-white rounded hover:bg-cyan-600"
+    >
+      Toggle Config
+    </button>
+        
+        {showConfig && (
+        
+        <div className="space-y-2 mt-6">
           <label className="flex items-center">
             <input
               type="radio"
@@ -627,7 +676,7 @@ function isLocalMinimum(signal: number[], index: number, windowSize: number): bo
             />
             Custom (3R - G - B)
           </label>
-        </div>
+        </div>  )}
       </div>
     </div>
   );
