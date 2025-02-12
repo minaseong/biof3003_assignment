@@ -453,10 +453,16 @@ export default function Home() {
         body: JSON.stringify(recordData)
       });
       const result = await response.json();
-      console.log('Record saved:', result);
-    } catch (error) {
-      console.error('Error saving record:', error);
+       if (result.success) {
+      alert('✅ Data successfully saved to MongoDB!');
+      console.log('Saved record:', result.data);
+    } else {
+      alert(`❌ Upload failed: ${result.error}`);
     }
+  } catch (error) {
+    alert('🚨 Network error - failed to save data');
+    console.error('Upload error:', error);
+  }
   };
 
 
