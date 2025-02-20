@@ -12,6 +12,7 @@ import {
   Tooltip,
   Legend
 } from 'chart.js';
+import * as tf from '@tensorflow/tfjs';
 
 ChartJS.register(
   CategoryScale,
@@ -22,7 +23,6 @@ ChartJS.register(
   Tooltip,
   Legend
 );
-
 
 export default function Home() {
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -38,6 +38,96 @@ export default function Home() {
   const fpsRef = useRef<number>(30);
   const frameTimeRef = useRef<number>(0);
   const framesRef = useRef<number>(0);
+
+  const [model, setModel] = useState<tf.LayersModel | null>(null);
+  const [signalQuality, setSignalQuality] = useState<string>('--');
+  const [qualityConfidence, setQualityConfidence] = useState<number>(0);
+
+  // Add this utility function
+  const calculateFeatures = (signal: number[]): number[] => {
+    if (!signal.length) return new Array(8).fill(0);
+    // Calculate mean
+    const mean = signal.reduce((sum, val) => sum + val, 0) / signal.length;
+
+    // Calculate standard deviation
+    const squaredDiffs = signal.map(val => Math.pow(val - mean, 2));
+    const variance = squaredDiffs.reduce((sum, val) => sum + val, 0) / signal.length;
+    const std = Math.sqrt(variance);
+
+    // Calculate skewness
+    const cubedDiffs = signal.map(val => Math.pow(val - mean, 3));
+    const skewness = (cubedDiffs.reduce((sum, val) => sum + val, 0) / signal.length) / Math.pow(std, 3);
+
+    // Calculate kurtosis
+    const fourthPowerDiffs = signal.map(val => Math.pow(val - mean, 4));
+    const kurtosis = (fourthPowerDiffs.reduce((sum, val) => sum + val, 0) / signal.length) / Math.pow(std, 4);
+
+    // Calculate signal range and peak to peak
+    const max = Math.max(...signal);
+    const min = Math.min(...signal);
+    const signalRange = max - min;
+    const peakToPeak = signalRange;
+
+    // Calculate zero crossings
+    let zeroCrossings = 0;
+    for (let i = 1; i < signal.length; i++) {
+      if ((signal[i] >= 0 && signal[i - 1] < 0) || (signal[i] < 0 && signal[i - 1] >= 0)) {
+        zeroCrossings++;
+      }
+    }
+
+    // Calculate RMS
+    const squaredSum = signal.reduce((sum, val) => sum + val * val, 0);
+    const rms = Math.sqrt(squaredSum / signal.length);
+
+    return [mean, std, skewness, kurtosis, signalRange, zeroCrossings, rms, peakToPeak];
+  };
+
+  useEffect(() => {
+    const loadModel = async () => {
+      try {
+        const loadedModel = await tf.loadLayersModel('/tfjs_model/model.json');
+        setModel(loadedModel);
+        console.log('PPG quality assessment model loaded successfully');
+      } catch (error) {
+        console.error('Error loading model:', error);
+      }
+    };
+
+    loadModel();
+  }, []);
+
+  const assessSignalQuality = async (signal: number[]) => {
+    if (!model || signal.length < 100) return;
+
+    try {
+      // Extract features
+      const features = calculateFeatures(signal);
+
+      // Convert to tensor
+      const inputTensor = tf.tensor2d([features]);
+
+      // Get prediction
+      const prediction = await model.predict(inputTensor) as tf.Tensor;
+      const probabilities = await prediction.data();
+
+      // Get predicted class
+      const classIndex = probabilities.indexOf(Math.max(...probabilities));
+      const classes = ['bad', 'acceptable', 'excellent'];
+      const predictedClass = classes[classIndex];
+      const confidence = probabilities[classIndex] * 100;
+
+      // Update state
+      setSignalQuality(predictedClass);
+      setQualityConfidence(confidence);
+
+      // Cleanup
+      inputTensor.dispose();
+      prediction.dispose();
+    } catch (error) {
+      console.error('Error assessing signal quality:', error);
+    }
+  };
 
   // Add FPS detection function
   const measureFPS = () => {
@@ -362,8 +452,8 @@ export default function Home() {
           const newData = [...prev.slice(-300), ppgSignal];
           console.log('New data length:', newData.length);
 
-          // Only process if we have enough data
-          if (newData.length >= 5) {
+          if (newData.length >= 100) {
+            assessSignalQuality(newData);
             const newValleys = detectValleys(newData);
             console.log('Detected valleys:', newValleys.length);
             setValleys(newValleys);
@@ -453,16 +543,16 @@ export default function Home() {
         body: JSON.stringify(recordData)
       });
       const result = await response.json();
-       if (result.success) {
-      alert('✅ Data successfully saved to MongoDB!');
-      console.log('Saved record:', result.data);
-    } else {
-      alert(`❌ Upload failed: ${result.error}`);
+      if (result.success) {
+        alert('✅ Data successfully saved to MongoDB!');
+        console.log('Saved record:', result.data);
+      } else {
+        alert(`❌ Upload failed: ${result.error}`);
+      }
+    } catch (error) {
+      alert('🚨 Network error - failed to save data');
+      console.error('Upload error:', error);
     }
-  } catch (error) {
-    alert('🚨 Network error - failed to save data');
-    console.error('Upload error:', error);
-  }
   };
 
 
@@ -600,7 +690,7 @@ export default function Home() {
             <Line data={chartData} options={{
               ...chartOptions
             }} />
-                        <button
+            <button
               onClick={pushDataToMongo}
               className="px-4 py-2 m-2 bg-cyan-500 text-white  rounded hover:bg-cyan-600"
             >
@@ -610,80 +700,99 @@ export default function Home() {
         </div>
       </div>
       {/* Signal Combination Selection */}
-      <div className="mt-4 p-4 bg-white rounded-xl border-2 border-cyan-500 flex flex-col">
+      <div className="mt-4 p-4 bg-white rounded-xl border-2 border-cyan-500 flex flex-col m-6">
         <h3 className="text-lg font-semibold mb-2">Signal Combination</h3>
         <button
-      onClick={() => setShowConfig(prev => !prev)}
-      className="px-4 py-2 bg-cyan-500 text-white rounded hover:bg-cyan-600"
-    >
-      Toggle Config
-    </button>
-        
+          onClick={() => setShowConfig(prev => !prev)}
+          className="px-4 py-2 bg-cyan-500 text-white rounded hover:bg-cyan-600"
+        >
+          Toggle Config
+        </button>
+
         {showConfig && (
-        
-        <div className="space-y-2 mt-6">
-          <label className="flex items-center">
-            <input
-              type="radio"
-              value="default"
-              checked={signalCombination === 'default'}
-              onChange={(e) => setSignalCombination(e.target.value)}
-              className="mr-2"
-            />
-            Default (2R - G - B)
-          </label>
-          <label className="flex items-center">
-            <input
-              type="radio"
-              value="redOnly"
-              checked={signalCombination === 'redOnly'}
-              onChange={(e) => setSignalCombination(e.target.value)}
-              className="mr-2"
-            />
-            Red Only
-          </label>
-          <label className="flex items-center">
-            <input
-              type="radio"
-              value="greenOnly"
-              checked={signalCombination === 'greenOnly'}
-              onChange={(e) => setSignalCombination(e.target.value)}
-              className="mr-2"
-            />
-            Green Only
-          </label>
-          <label className="flex items-center">
-            <input
-              type="radio"
-              value="blueOnly"
-              checked={signalCombination === 'blueOnly'}
-              onChange={(e) => setSignalCombination(e.target.value)}
-              className="mr-2"
-            />
-            Blue Only
-          </label>
-          <label className="flex items-center">
-            <input
-              type="radio"
-              value="redMinusBlue"
-              checked={signalCombination === 'redMinusBlue'}
-              onChange={(e) => setSignalCombination(e.target.value)}
-              className="mr-2"
-            />
-            Red - Blue
-          </label>
-          <label className="flex items-center">
-            <input
-              type="radio"
-              value="custom"
-              checked={signalCombination === 'custom'}
-              onChange={(e) => setSignalCombination(e.target.value)}
-              className="mr-2"
-            />
-            Custom (3R - G - B)
-          </label>
-        </div>  )}
+
+          <div className="space-y-2 mt-6">
+            <label className="flex items-center">
+              <input
+                type="radio"
+                value="default"
+                checked={signalCombination === 'default'}
+                onChange={(e) => setSignalCombination(e.target.value)}
+                className="mr-2"
+              />
+              Default (2R - G - B)
+            </label>
+            <label className="flex items-center">
+              <input
+                type="radio"
+                value="redOnly"
+                checked={signalCombination === 'redOnly'}
+                onChange={(e) => setSignalCombination(e.target.value)}
+                className="mr-2"
+              />
+              Red Only
+            </label>
+            <label className="flex items-center">
+              <input
+                type="radio"
+                value="greenOnly"
+                checked={signalCombination === 'greenOnly'}
+                onChange={(e) => setSignalCombination(e.target.value)}
+                className="mr-2"
+              />
+              Green Only
+            </label>
+            <label className="flex items-center">
+              <input
+                type="radio"
+                value="blueOnly"
+                checked={signalCombination === 'blueOnly'}
+                onChange={(e) => setSignalCombination(e.target.value)}
+                className="mr-2"
+              />
+              Blue Only
+            </label>
+            <label className="flex items-center">
+              <input
+                type="radio"
+                value="redMinusBlue"
+                checked={signalCombination === 'redMinusBlue'}
+                onChange={(e) => setSignalCombination(e.target.value)}
+                className="mr-2"
+              />
+              Red - Blue
+            </label>
+            <label className="flex items-center">
+              <input
+                type="radio"
+                value="custom"
+                checked={signalCombination === 'custom'}
+                onChange={(e) => setSignalCombination(e.target.value)}
+                className="mr-2"
+              />
+              Custom (3R - G - B)
+            </label>
+          </div>)}
       </div>
+              {/* Add this to your metrics cards section */}
+              <div className="p-6 bg-white rounded-xl border-2 border-cyan-500 backdrop-blur m-6">
+          <div className="text-xl font-bold text-cyan-600 mb-2">Signal Quality</div>
+          <div className="text-3xl font-bold text-cyan-600 capitalize">
+            {signalQuality}
+          </div>
+          <div className="mt-4">
+            <div className="text-sm text-cyan-600 mb-1">
+              Confidence: {qualityConfidence.toFixed(1)}%
+            </div>
+            <div className="w-full bg-gray-100 rounded-full h-2">
+              <div
+                className="bg-gradient-to-r from-cyan-500 to-purple-500 h-2 rounded-full transition-all duration-300"
+                style={{ width: `${qualityConfidence}%` }}
+              />
+            </div>
+          </div>
+        </div>
+
     </div>
   );
 
