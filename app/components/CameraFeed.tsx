@@ -1,36 +1,24 @@
 // components/CameraFeed.tsx
-import { useRef, useEffect } from 'react';
+import React from 'react';
 
-interface CameraProps {
-  isRecording: boolean;
-  startCamera: () => void;
-  stopCamera: () => void;
-  processFrame: () => void;
+interface CameraFeedProps {
+  videoRef: React.RefObject<HTMLVideoElement | null>;
+  canvasRef: React.RefObject<HTMLCanvasElement | null>;
 }
 
-export default function CameraFeed({
-  isRecording,
-  startCamera,
-  stopCamera,
-  processFrame,
-}: CameraProps) {
-  const videoRef = useRef(null);
-  const canvasRef = useRef(null);
-
-  useEffect(() => {
-    if (isRecording) {
-      startCamera();
-      const interval = setInterval(processFrame, 1000 / 30); // Process at 30 FPS
-      return () => clearInterval(interval);
-    } else {
-      stopCamera();
-    }
-  }, [isRecording]);
-
+const CameraFeed: React.FC<CameraFeedProps> = ({ videoRef, canvasRef }) => {
   return (
     <div>
-      <video ref={videoRef} autoPlay playsInline style={{ width: '100%' }} />
-      <canvas ref={canvasRef} style={{ display: 'none' }} />
+      {/* Video Element */}
+      <video ref={videoRef} autoPlay playsInline muted className="hidden" />
+      <canvas
+        ref={canvasRef}
+        width={640}
+        height={480}
+        className="w-full max-w-[640px] h-auto border border-black"
+      />
     </div>
   );
-}
+};
+
+export default CameraFeed;

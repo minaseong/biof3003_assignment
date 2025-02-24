@@ -4,7 +4,9 @@ import mongoose from 'mongoose';
 
 const MONGODB_URI = process.env.MONGODB_URI as string;
 if (!MONGODB_URI) {
-  throw new Error('Please define the MONGODB_URI environment variable in .env.local');
+  throw new Error(
+    'Please define the MONGODB_URI environment variable in .env.local'
+  );
 }
 
 // Cache to reuse an existing connection
@@ -19,7 +21,9 @@ async function dbConnect() {
   }
   if (!cached.promise) {
     const opts = { bufferCommands: false };
-    cached.promise = mongoose.connect(MONGODB_URI, opts).then(mongoose => mongoose);
+    cached.promise = mongoose
+      .connect(MONGODB_URI, opts)
+      .then((mongoose) => mongoose);
   }
   cached.conn = await cached.promise;
   return cached.conn;
@@ -27,12 +31,14 @@ async function dbConnect() {
 
 // Define the schema with an extra field for ppgData
 const RecordSchema = new mongoose.Schema({
-  heartRate: { type: Number, required: true },
+  heartRate: {
+    bpm: { type: Number, required: true },
+    confidence: { type: Number, required: true },
+  },
   hrv: {
     sdnn: { type: Number, required: true },
     confidence: { type: Number, required: true },
   },
-  confidence: { type: Number, required: true },
   ppgData: { type: [Number], required: true },
   timestamp: { type: Date, default: Date.now },
 });
@@ -49,12 +55,14 @@ export async function POST(request: Request) {
     const newRecord = await Record.create({
       heartRate: body.heartRate,
       hrv: body.hrv,
-      confidence: body.confidence,
       ppgData: body.ppgData, // The whole ppgData array is posted here
       timestamp: body.timestamp || new Date(),
     });
 
-    return NextResponse.json({ success: true, data: newRecord }, { status: 201 });
+    return NextResponse.json(
+      { success: true, data: newRecord },
+      { status: 201 }
+    );
   } catch (error: any) {
     return NextResponse.json(
       { success: false, error: error.message },

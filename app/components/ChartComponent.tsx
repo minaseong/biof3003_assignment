@@ -1,5 +1,4 @@
 // components/ChartComponent.tsx
-import React from 'react';
 import { Line } from 'react-chartjs-2';
 import {
   Chart as ChartJS,
@@ -12,7 +11,6 @@ import {
   Legend,
 } from 'chart.js';
 
-// Register Chart.js components
 ChartJS.register(
   CategoryScale,
   LinearScale,
