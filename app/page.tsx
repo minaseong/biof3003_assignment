@@ -10,6 +10,8 @@ import useSignalQuality from './hooks/useSignalQuality';
 
 export default function Home() {
   const [isRecording, setIsRecording] = useState(false);
+  const [isSampling, setIsSampling] = useState(false); // New state for sampling
+  const [isUploading, setIsUploading] = useState(false);
   const [signalCombination, setSignalCombination] = useState('default');
   const [showConfig, setShowConfig] = useState(false);
 
@@ -54,7 +56,30 @@ export default function Home() {
     };
   }, [isRecording]);
 
+  // Automatically send data every 10 seconds
+  // Automatically send data every second when sampling is enabled
+  useEffect(() => {
+    let intervalId: NodeJS.Timeout | null = null;
+
+    if (isSampling && ppgData.length > 0) {
+      intervalId = setInterval(() => {
+        pushDataToMongo();
+      }, 10000); // Send data every second
+    }
+
+    return () => {
+      if (intervalId) clearInterval(intervalId);
+    };
+  }, [isSampling, ppgData]);
+
   const pushDataToMongo = async () => {
+    if (isUploading) return; // Prevent overlapping calls
+
+    setIsUploading(true); // Lock the function
+    if (ppgData.length === 0) {
+      console.warn('No PPG data to send to MongoDB');
+      return;
+    }
     // Prepare the record data – adjust or add additional fields as needed
     const recordData = {
       heartRate: {
@@ -88,6 +113,8 @@ export default function Home() {
       }
     } catch (error) {
       console.error('🚨 Network error - failed to save data:', error);
+    } finally {
+      setIsUploading(false); // Unlock the function
     }
   };
 
@@ -107,6 +134,18 @@ export default function Home() {
           }`}
         >
           {isRecording ? '⏹ STOP' : '⏺ START'} RECORDING
+        </button>
+        {/* Sampling Button */}
+        <button
+          onClick={() => setIsSampling(!isSampling)}
+          className={`p-3 rounded-lg text-sm transition-all duration-300 ml-2 ${
+            isSampling
+              ? 'bg-green-500 hover:bg-green-600 text-white'
+              : 'bg-gray-500 hover:bg-gray-600 text-white'
+          }`}
+          disabled={!isRecording} // Enable only when recording is active
+        >
+          {isSampling ? '⏹ STOP SAMPLING' : '⏺ START SAMPLING'}
         </button>
       </div>
 
