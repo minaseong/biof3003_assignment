@@ -1,6 +1,6 @@
 interface MetricsCardProps {
   title: string;
-  value: number | { bpm?: number; sdnn?: number }; // Support for structured types
+  value: number | string | { bpm?: number; sdnn?: number }; // Support for structured types
   unit?: string;
   confidence?: number; // Optional confidence for cases where it's not needed
 }
@@ -17,7 +17,8 @@ export default function MetricsCard({
       <h2 className="text-2xl font-bold">
         {typeof value === 'number' && value > 0
           ? `${value} ${unit || ''}` // Display numeric values with optional units
-          : typeof value === 'object' && value !== null
+          : typeof value === 'string'? `${value}`:
+          typeof value === 'object' && value !== null
           ? value.bpm !== undefined
             ? `${value.bpm} BPM` // Handle HeartRateResult
             : value.sdnn !== undefined
