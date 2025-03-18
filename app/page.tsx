@@ -7,6 +7,7 @@ import SignalCombinationSelector from './components/SignalCombinationSelector';
 import ChartComponent from './components/ChartComponent';
 import usePPGProcessing from './hooks/usePPGProcessing';
 import useSignalQuality from './hooks/useSignalQuality';
+import Chatbot from './components/Chatbot';
 
 export default function Home() {
   const [isRecording, setIsRecording] = useState(false);
@@ -205,6 +206,9 @@ export default function Home() {
               value={signalQuality || '--'} // String value for signal quality
               confidence={qualityConfidence || 0}
             />
+
+            <Chatbot/>
+
           </div>
         </div>
       </div>

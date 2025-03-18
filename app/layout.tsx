@@ -15,7 +15,7 @@ const geistMono = localFont({
 
 export const metadata: Metadata = {
   title: "Heart Lens",
-  description: "Monitor your pulse",
+  description: "Health: Monitor your heart rate",
 };
 
 export default function RootLayout({
