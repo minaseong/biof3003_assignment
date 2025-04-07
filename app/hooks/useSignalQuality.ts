@@ -61,63 +61,86 @@ export default function useSignalQuality(
   };
 
   const calculateFeatures = (signal: number[]): number[] => {
-    if (!signal.length) return new Array(8).fill(0);
-
-    // Calculate mean
+    if (!signal.length) return new Array(19).fill(0);
+  
+    // Basic statistics
     const mean = signal.reduce((sum, val) => sum + val, 0) / signal.length;
-
-    // Calculate standard deviation
-    const squaredDiffs = signal.map((val) => Math.pow(val - mean, 2));
-    const variance =
-      squaredDiffs.reduce((sum, val) => sum + val, 0) / signal.length;
-    const std = Math.sqrt(variance);
-
-    // Calculate skewness
-    const cubedDiffs = signal.map((val) => Math.pow(val - mean, 3));
-    const skewness =
-      cubedDiffs.reduce((sum, val) => sum + val, 0) /
-      signal.length /
-      Math.pow(std, 3);
-
-    // Calculate kurtosis
-    const fourthPowerDiffs = signal.map((val) => Math.pow(val - mean, 4));
-    const kurtosis =
-      fourthPowerDiffs.reduce((sum, val) => sum + val, 0) /
-      signal.length /
-      Math.pow(std, 4);
-
-    // Calculate signal range and peak-to-peak
-    const max = Math.max(...signal);
-    const min = Math.min(...signal);
-    const signalRange = max - min;
-    const peakToPeak = signalRange;
-
-    // Calculate zero crossings
+    const std = Math.sqrt(signal.reduce((sum, val) => sum + Math.pow(val - mean, 2), 0) / signal.length);
+    const variance = signal.reduce((sum, val) => sum + Math.pow(val - mean, 2), 0) / signal.length;
+    const rms = Math.sqrt(signal.reduce((sum, val) => sum + val * val, 0) / signal.length);
+    const signalMin = Math.min(...signal);
+    const signalMax = Math.max(...signal);
+    const signalRange = signalMax - signalMin;
+  
+    // Quartiles (Q1, Q2=median, Q3)
+    const q1 = percentile(signal, 25);
+    const q2 = percentile(signal, 50); // Median
+    const q3 = percentile(signal, 75);
+  
+    // Higher-order statistics
+    const diff = signal.map(val => val - mean);
+    const skewness = diff.reduce((sum, val) => sum + Math.pow(val, 3), 0) / signal.length / Math.pow(std, 3);
+    const kurtosis = diff.reduce((sum, val) => sum + Math.pow(val, 4), 0) / signal.length / Math.pow(std, 4);
+  
+    // Perfusion (approximation)
+    const perfusion = (signalMax - signalMin) / (Math.abs(mean) + 1e-7) * 100;
+  
+    // Entropy (approximation)
+    const squaredSignal = signal.map(val => val * val);
+    const epsilon = 1e-10;
+    const entropy = -squaredSignal.reduce((sum, val) => sum + val * Math.log(val + epsilon), 0) / signal.length;
+  
+    // Zero crossing rate
     let zeroCrossings = 0;
     for (let i = 1; i < signal.length; i++) {
-      if (
-        (signal[i] >= 0 && signal[i - 1] < 0) ||
-        (signal[i] < 0 && signal[i - 1] >= 0)
-      ) {
+      if ((signal[i] >= 0 && signal[i - 1] < 0) || (signal[i] < 0 && signal[i - 1] >= 0)) {
         zeroCrossings++;
       }
     }
-
-    // Calculate RMS
-    const squaredSum = signal.reduce((sum, val) => sum + val * val, 0);
-    const rms = Math.sqrt(squaredSum / signal.length);
-
+    const zeroCrossingRate = zeroCrossings / signal.length;
+  
+      // SNR Ratio (approximation)
+      const absSignal = signal.map(val => Math.abs(val));
+      const snrRatio = variance / (absSignal.reduce((sum, val) => sum + val * val, 0) / signal.length + 1e-7);
+  
+    // FFT Features (Simplified - requires a separate FFT library for accurate calculation)
+    // In this example, we are just adding placeholders.  For real FFT features, you'd need to use a library.
+    const fftEnergy = 0; // Placeholder
+    const fftVariance = 0; // Placeholder
+    const fftSum = 0; // Placeholder
+  
     return [
+      fftEnergy,
+      fftVariance,
+      fftSum,
       mean,
+      q1,
+      q2,
+      q3,
+      signalMin,
+      signalMax,
       std,
+      signalRange,
+      variance,
+      rms,
+      perfusion,
       skewness,
       kurtosis,
-      signalRange,
-      zeroCrossings,
-      rms,
-      peakToPeak,
+      entropy,
+      zeroCrossingRate,
+      snrRatio
     ];
   };
-
+  
+  // Helper function to calculate percentile
+  function percentile(arr: number[], p: number): number {
+    const sorted = [...arr].sort((a, b) => a - b);
+    const index = (p / 100) * (sorted.length - 1);
+    const lower = Math.floor(index);
+    const upper = Math.ceil(index);
+    const fraction = index - lower;
+    return sorted[lower] * (1 - fraction) + sorted[upper] * fraction;
+  }
+  
   return { signalQuality, qualityConfidence };
 }

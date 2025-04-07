@@ -161,15 +161,6 @@ export default function usePPGProcessing(
             bSum += pixel[2];
             validSamples++;
 
-            // // Log sample point data
-            // console.log(`Sample ${index}:`, {
-            //   x,
-            //   y,
-            //   r: pixel[0],
-            //   g: pixel[1],
-            //   b: pixel[2],
-            // });
-
             // Visualize sampling points
             context.beginPath();
             context.arc(x, y, 5, 0, 2 * Math.PI);
@@ -206,7 +197,6 @@ export default function usePPGProcessing(
 
       setPpgData((prev) => {
         const newData = [...prev.slice(-300), ppgSignal];
-        console.log('New PPG data length:', newData.length);
         if (newData.length >= 100) {
           const newValleys = detectValleys(newData);
           setValleys(newValleys);
@@ -218,7 +208,6 @@ export default function usePPGProcessing(
           const hrvValues = calculateHRV(newValleys);
           setHRV(hrvValues);
         }
-
         return newData;
       });
     } catch (err) {

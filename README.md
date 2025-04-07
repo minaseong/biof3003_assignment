@@ -1,36 +1,100 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# HeartLens 🫀
 
-## Getting Started
+HeartLens is a modern web application that uses your device's camera to measure heart rate and heart rate variability (HRV) through Photoplethysmography (PPG) signal processing.
 
-First, run the development server:
+## Features ✨
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+- **Real-time PPG Signal Processing**: Captures and analyzes PPG signals through your device's camera
+- **Live Metrics**:
+  - Heart Rate (BPM)
+  - Heart Rate Variability (HRV)
+  - Signal Quality Monitoring
+- **User Management**: Personal profiles with historical data tracking
+- **Data Recording**: Start/stop recording functionality
+- **Automatic Sampling**: Save data to MongoDB every 10 seconds
+- **Signal Customization**: Multiple PPG signal combination options
+- **Modern UI**: Clean, responsive interface with real-time visualizations
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Technical Stack 🛠
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+- **Frontend**: Next.js 13+ with App Router
+- **Styling**: Tailwind CSS
+- **Data Visualization**: Chart.js
+- **Backend**: Next.js API Routes
+- **Database**: MongoDB
+- **Real-time Processing**: Canvas API for video processing
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Getting Started 🚀
 
-## Learn More
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/yourusername/heartlens.git
+   cd heartlens
+   ```
 
-To learn more about Next.js, take a look at the following resources:
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+3. Set up environment variables:
+   ```bash
+   cp .env.example .env.local
+   ```
+   Add your MongoDB connection string and other required variables.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+4. Run the development server:
+   ```bash
+   npm run dev
+   ```
 
-## Deploy on Vercel
+5. Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Usage Guide 📖
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+1. **User Authentication**:
+   - Enter your name/ID
+   - Click "Confirm User" to proceed
+
+2. **Recording**:
+   - Click "START RECORDING" to begin camera feed
+   - Wait for signal quality to stabilize
+   - Use "START SAMPLING" to automatically save data
+
+3. **Signal Configuration**:
+   - Click "Show Config" to access signal options
+   - Choose from various PPG signal combinations
+
+4. **Data Management**:
+   - View real-time metrics and PPG signal graph
+   - Data is automatically saved every 10 seconds when sampling
+   - Manual save option available via "Save Data to MongoDB"
+
+## Requirements 📋
+
+- Modern web browser with camera access
+- Good lighting conditions for optimal PPG signal
+- Stable internet connection for data saving
+- MongoDB database (for data storage)
+
+## Privacy and Security 🔒
+
+- Camera feed is processed locally
+- No video data is stored or transmitted
+- Only processed PPG data and metrics are saved
+- User data is stored securely in MongoDB
+
+## Contributing 🤝
+
+Contributions are welcome! Please feel free to submit a Pull Request.
+
+## License 📄
+
+This project is licensed under the MIT License - see the LICENSE file for details.
+
+## Acknowledgments 🙏
+
+- PPG signal processing algorithms
+- Chart.js for visualization
+- Tailwind CSS for styling
+- Next.js team for the framework
