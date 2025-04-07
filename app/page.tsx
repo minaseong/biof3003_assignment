@@ -211,7 +211,7 @@ export default function Home() {
                           <span className="text-white text-2xl font-bold">{confirmedSubject.charAt(0).toUpperCase()}</span>
                         </div>
                         <div className="space-y-1">
-                          <h3 className="text-xl font-semibold text-gray-800">Welcome back!</h3>
+                          <h3 className="text-xl font-semibold text-gray-800">Welcome!</h3>
                           <div className="flex items-center space-x-2">
                             <div className="w-2 h-2 bg-emerald-400 rounded-full"></div>
                             <p className="text-gray-600">Logged in as <span className="font-medium text-gray-800">{confirmedSubject}</span></p>
