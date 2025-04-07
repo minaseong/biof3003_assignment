@@ -29,8 +29,8 @@ export default function Home() {
   });
 
   // Define refs for video and canvas
-  const videoRef = useRef<HTMLVideoElement | null>(null);
-  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
 
   const {
     ppgData,

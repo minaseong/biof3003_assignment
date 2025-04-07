@@ -38,8 +38,8 @@ interface PPGProcessingResult {
 export default function usePPGProcessing(
   isRecording: boolean,
   signalCombination: string,
-  videoRef: React.RefObject<HTMLVideoElement | null>,
-  canvasRef: React.RefObject<HTMLCanvasElement | null>
+  videoRef: React.RefObject<HTMLVideoElement>,
+  canvasRef: React.RefObject<HTMLCanvasElement>
 ): PPGProcessingResult {
   const [ppgData, setPpgData] = useState<number[]>([]);
   const [valleys, setValleys] = useState<Valley[]>([]);

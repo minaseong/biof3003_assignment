@@ -2,8 +2,8 @@
 import React from 'react';
 
 interface CameraFeedProps {
-  videoRef: React.RefObject<HTMLVideoElement | null>;
-  canvasRef: React.RefObject<HTMLCanvasElement | null>;
+  videoRef: React.RefObject<HTMLVideoElement>;
+  canvasRef: React.RefObject<HTMLCanvasElement>;
 }
 
 const CameraFeed: React.FC<CameraFeedProps> = ({ videoRef, canvasRef }) => {
