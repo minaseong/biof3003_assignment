@@ -1,100 +1,140 @@
-# HeartLens 🫀
+# HeartLens 🫀  
+[Live Demo](https://biof3003-assignment-wheat.vercel.app/)
 
-HeartLens is a modern web application that uses your device's camera to measure heart rate and heart rate variability (HRV) through Photoplethysmography (PPG) signal processing.
+HeartLens is a web-based application that captures and processes **photoplethysmography (PPG)** signals via a webcam. It calculates **heart rate (BPM)**, **heart rate variability (HRV)**, and **signal quality** in real time using machine learning algorithms. The app also features user management, live data visualization, and automatic data storage to **MongoDB** for further analysis.
 
-## Features ✨
+---
 
-- **Real-time PPG Signal Processing**: Captures and analyzes PPG signals through your device's camera
-- **Live Metrics**:
-  - Heart Rate (BPM)
-  - Heart Rate Variability (HRV)
-  - Signal Quality Monitoring
-- **User Management**: Personal profiles with historical data tracking
-- **Data Recording**: Start/stop recording functionality
-- **Automatic Sampling**: Save data to MongoDB every 10 seconds
-- **Signal Customization**: Multiple PPG signal combination options
-- **Modern UI**: Clean, responsive interface with real-time visualizations
+## 🧠 Project Overview
 
-## Technical Stack 🛠
+The HeartLen App is a web-based tool designed to process photoplethysmography (PPG) signals captured via a webcam. It calculates heart rate, heart rate variability (HRV), and signal quality using machine learning models. The processed data can be saved to a MongoDB database for further analysis.
 
-- **Frontend**: Next.js 13+ with App Router
-- **Styling**: Tailwind CSS
-- **Data Visualization**: Chart.js
-- **Backend**: Next.js API Routes
-- **Database**: MongoDB
-- **Real-time Processing**: Canvas API for video processing
+---
 
-## Getting Started 🚀
+## 🛠️ Repository Structure
 
-1. Clone the repository:
+~~~plain
+/heartlen-app
+├── app
+│   ├── components       # Reusable React components (e.g., CameraFeed, ChartComponent)
+│   ├── hooks            # Custom React hooks (e.g., usePPGProcessing, useSignalQuality)
+│   ├── api              # Backend API routes (e.g., save-record.ts)
+│   └── page.tsx         # Main page of the app
+├── public               # Public assets (e.g., TensorFlow.js models)
+├── types                # TypeScript type definitions
+├── README.md            # Project documentation
+└── package.json         # Project dependencies and scripts
+~~~
+
+---
+
+## 🚀 Installation Instructions
+
+### ✅ Prerequisites
+- Node.js (v18+)
+- MongoDB Atlas account (or local MongoDB instance)
+
+### 📦 Steps
+
+1. **Clone the repository**
    ```bash
-   git clone https://github.com/yourusername/heartlens.git
-   cd heartlens
+   git clone https://github.com/your-username/heartlen-app.git
+   cd heartlen-app
    ```
 
-2. Install dependencies:
+2. **Install dependencies**
    ```bash
    npm install
    ```
 
-3. Set up environment variables:
+3. **Set up environment variables**
+
+   Create a `.env.local` file in the root directory:
    ```bash
    cp .env.example .env.local
    ```
-   Add your MongoDB connection string and other required variables.
 
-4. Run the development server:
+   Add your MongoDB connection string:
+   ```
+   MONGODB_URI=your_mongodb_connection_string
+   ```
+
+4. **Start the development server**
    ```bash
    npm run dev
    ```
 
-5. Open [http://localhost:3000](http://localhost:3000) in your browser.
+5. **Open the app**
+   Navigate to `http://localhost:3000` in your browser.
 
-## Usage Guide 📖
+---
 
-1. **User Authentication**:
-   - Enter your name/ID
-   - Click "Confirm User" to proceed
+## 🔗 Connecting to MongoDB
 
-2. **Recording**:
-   - Click "START RECORDING" to begin camera feed
-   - Wait for signal quality to stabilize
-   - Use "START SAMPLING" to automatically save data
+To link the app to your MongoDB database:
 
-3. **Signal Configuration**:
-   - Click "Show Config" to access signal options
-   - Choose from various PPG signal combinations
+1. Create a MongoDB Atlas cluster or use a local MongoDB instance.
+2. Copy the connection string from MongoDB Atlas and paste it into the `.env.local` file as shown above.
+3. Ensure the database has a collection named `records` to store PPG data.
 
-4. **Data Management**:
-   - View real-time metrics and PPG signal graph
-   - Data is automatically saved every 10 seconds when sampling
-   - Manual save option available via "Save Data to MongoDB"
+---
 
-## Requirements 📋
+## 🖥️ Usage Guide
 
-- Modern web browser with camera access
-- Good lighting conditions for optimal PPG signal
-- Stable internet connection for data saving
-- MongoDB database (for data storage)
+1. **Confirm User**
+   - Enter your subject name or ID
+   - Click **"Confirm User"** to proceed
 
-## Privacy and Security 🔒
+2. **Recording**
+   - Click **"START RECORDING"** to activate the webcam
+   - Allow time for signal quality to stabilize
+   - Click **"START SAMPLING"** to begin saving data every 10 seconds
 
-- Camera feed is processed locally
-- No video data is stored or transmitted
-- Only processed PPG data and metrics are saved
-- User data is stored securely in MongoDB
+3. **Signal Configuration**
+   - Toggle **"Show Config"** to reveal signal customization options
+   - Choose your preferred signal combination setup
 
-## Contributing 🤝
+4. **Data Management**
+   - View live plots of PPG signal, BPM, and HRV
+   - Data is saved automatically or manually using **"Save Data to MongoDB"**
 
-Contributions are welcome! Please feel free to submit a Pull Request.
+---
 
-## License 📄
+## 🌐 Deployment
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+To deploy HeartLens on a platform like Vercel:
 
-## Acknowledgments 🙏
+1. **Build for production**
+   ```bash
+   npm run build
+   ```
 
-- PPG signal processing algorithms
-- Chart.js for visualization
-- Tailwind CSS for styling
-- Next.js team for the framework
+2. **Start production server locally**
+   ```bash
+   npm start
+   ```
+
+3. **Deploy on Vercel or another hosting provider**
+   - Ensure `.env` variables are correctly set as "Environment Variables: in the deployment environment
+
+---
+
+## 💡 Features
+
+- 📸 Real-time PPG Signal Capture via webcam  
+- 📊 Live Heart Rate & HRV Monitoring  
+- 🧪 Signal Quality Detection  
+- 🔒 Secure User Authentication (lightweight)  
+- 💾 MongoDB Data Storage
+- 🛠 Custom Signal Configuration Options  
+- 📈 Live Charts with Chart.js  
+- 🎨 Responsive and modern UI with Tailwind CSS  
+
+---
+
+## 🧼 Code Quality
+
+- Modularized structure with **custom hooks** and **reusable components**  
+- Follows **TypeScript** best practices and **Next.js 13 App Router** conventions  
+
+---
