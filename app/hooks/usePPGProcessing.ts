@@ -35,6 +35,21 @@ interface PPGProcessingResult {
   stopCamera: () => void;
 }
 
+/**
+ * Custom hook for processing PPG (Photoplethysmography) data from camera feed
+ * @param {boolean} isRecording - Whether the camera is currently recording
+ * @param {string} signalCombination - The signal combination method to use ('default', 'red', 'green', 'blue')
+ * @param {React.RefObject<HTMLVideoElement>} videoRef - Reference to the video element
+ * @param {React.RefObject<HTMLCanvasElement>} canvasRef - Reference to the canvas element
+ * @returns {Object} Object containing:
+ *   - ppgData: Array of processed PPG signal values
+ *   - valleys: Array of detected valley points in the signal
+ *   - heartRate: Object containing BPM and confidence
+ *   - hrv: Object containing SDNN and confidence
+ *   - processFrame: Function to process a single video frame
+ *   - startCamera: Function to start the camera
+ *   - stopCamera: Function to stop the camera
+ */
 export default function usePPGProcessing(
   isRecording: boolean,
   signalCombination: string,

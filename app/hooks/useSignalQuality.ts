@@ -6,6 +6,14 @@ interface SignalQualityResults {
   signalQuality: string;
   qualityConfidence: number;
 }
+
+/**
+ * Custom hook for analyzing PPG signal quality
+ * @param {number[]} ppgData - Array of PPG signal values to analyze
+ * @returns {Object} Object containing:
+ *   - signalQuality: String indicating signal quality ('Excellent', 'Good', 'Fair', 'Poor')
+ *   - qualityConfidence: Number between 0-1 representing confidence in the quality assessment
+ */
 export default function useSignalQuality(
   ppgData: number[]
 ): SignalQualityResults {

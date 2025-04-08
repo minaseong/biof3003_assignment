@@ -47,6 +47,33 @@ const RecordSchema = new mongoose.Schema({
 // Use an existing model if available or compile a new one
 const Record = mongoose.models.Record || mongoose.model('Record', RecordSchema);
 
+/**
+ * API route for saving PPG data records to MongoDB
+ * 
+ * POST /api/save-record
+ * 
+ * Request body:
+ * {
+ *   subjectId: string,      // User identifier
+ *   heartRate: {           // Heart rate measurements
+ *     bpm: number,         // Beats per minute
+ *     confidence: number   // Confidence score (0-1)
+ *   },
+ *   hrv: {                // Heart Rate Variability measurements
+ *     sdnn: number,       // Standard Deviation of NN intervals
+ *     confidence: number  // Confidence score (0-1)
+ *   },
+ *   ppgData: number[],    // Raw PPG signal data
+ *   timestamp?: Date      // Optional timestamp (defaults to current time)
+ * }
+ * 
+ * Response:
+ * {
+ *   success: boolean,     // Whether the operation was successful
+ *   data?: Record,        // The saved record (if successful)
+ *   error?: string        // Error message (if unsuccessful)
+ * }
+ */
 export async function POST(request: Request) {
   try {
     await dbConnect();

@@ -115,23 +115,33 @@ export default function Home() {
     };
   }, [isRecording]);
 
-  // Automatically send data every 10 seconds when sampling is enabled
+  // Effect for handling automatic data sampling
   useEffect(() => {
     let intervalId: NodeJS.Timeout | null = null;
 
+    // Only start sampling if both conditions are met:
+    // 1. Sampling is enabled (isSampling is true)
+    // 2. We have PPG data to sample (ppgData.length > 0)
     if (isSampling && ppgData.length > 0) {
+      // Set up an interval to send data to MongoDB every 10 seconds
       intervalId = setInterval(() => {
         pushDataToMongo();
       }, 10000);
     }
 
+    // Cleanup function to clear the interval when component unmounts
+    // or when isSampling or ppgData changes
     return () => {
       if (intervalId) clearInterval(intervalId);
     };
   }, [isSampling, ppgData.length]);
 
+  // Function to handle data submission to MongoDB
   const pushDataToMongo = async () => {
+    // Prevent multiple simultaneous uploads
     if (isUploading) return;
+    
+    // Ensure user is logged in before proceeding
     if (!confirmedSubject) {
       alert('Please confirm your Subject ID first.');
       return;
@@ -140,6 +150,7 @@ export default function Home() {
     setIsUploading(true);
     setUploadSuccess(false);
     
+    // Validate PPG data before sending
     if (ppgData.length === 0) {
       console.warn('No PPG data to send to MongoDB');
       alert('Cannot send data to MongoDB: No PPG data available. Please start recording first.');
@@ -147,6 +158,7 @@ export default function Home() {
       return;
     }
     
+    // Ensure we have enough data points for meaningful analysis
     if (ppgData.length < 50) {
       console.warn('Not enough PPG data points to send to MongoDB');
       alert(`Cannot send data to MongoDB: Not enough PPG data (${ppgData.length} points). Please record for a longer duration.`);
@@ -154,6 +166,7 @@ export default function Home() {
       return;
     }
 
+    // Prepare data for submission
     const recordData = {
       subjectId: confirmedSubject,
       heartRate: {
@@ -169,6 +182,7 @@ export default function Home() {
     };
 
     try {
+      // Send data to MongoDB via API
       const response = await fetch('/api/save-record', {
         method: 'POST',
         headers: {
@@ -182,7 +196,7 @@ export default function Home() {
         console.log('✅ Data successfully saved to MongoDB:', result.data);
         setUploadSuccess(true);
         
-        // Reset to normal state after 3 seconds
+        // Reset success state after 3 seconds
         setTimeout(() => {
           setUploadSuccess(false);
           setIsUploading(false);
