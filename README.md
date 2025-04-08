@@ -131,7 +131,8 @@ To deploy HeartLens on a platform like Vercel:
 - 💾 MongoDB Data Storage
 - 🛠 Custom Signal Configuration Options  
 - 📈 Live Charts with Chart.js  
-- 🎨 Responsive and modern UI with Tailwind CSS  
+- 🎨 Responsive and modern UI with Tailwind CSS
+   -  🌙 Dark mode!
 
 ---
 
