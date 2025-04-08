@@ -244,7 +244,7 @@ export default function Home() {
       {/* Instructions Modal */}
       {showInstructions && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
-          <div className={`relative max-w-2xl w-full mx-4 ${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} rounded-xl p-6 border shadow-lg`}>
+          <div className={`relative max-w-2xl w-full mx-4 ${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} rounded-xl p-6 border shadow-lg overflow-y-auto max-h-[80vh]`}>
             <button 
               onClick={() => setShowInstructions(false)}
               className="absolute top-4 right-4 text-gray-500 hover:text-gray-700"
@@ -259,17 +259,17 @@ export default function Home() {
             <div className="space-y-5">
               <div className={`mb-5 p-4 rounded-lg ${isDarkMode ? 'bg-gray-700/60' : 'bg-amber-50/60'} border ${isDarkMode ? 'border-gray-600' : 'border-amber-100'}`}>
                 <p className={`${isDarkMode ? 'text-gray-200' : 'text-gray-700'}`}>
-                  HeartLens is a non-invasive tool that uses your device&apos;s camera to measure your heart rate and heart rate variability (HRV) through photoplethysmography (PPG). By detecting subtle color changes in your finger that correspond with your pulse, HeartLens provides real-time insights into your cardiovascular health.
+                  HeartLens uses your device&apos;s camera to measure heart rate and HRV through PPG, providing real-time insights into your cardiovascular health.
                 </p>
               </div>
               
               <div className="flex">
                 <div className={`flex-shrink-0 w-10 h-10 ${isDarkMode ? 'bg-amber-500/20' : 'bg-amber-500/10'} rounded-full flex items-center justify-center mr-4`}>
-                  <span className={`text-xl font-bold ${isDarkMode ? 'text-amber-400' : 'text-amber-500'}`}>1</span>
+                  <span className={`text-lg font-bold ${isDarkMode ? 'text-amber-400' : 'text-amber-500'}`}>1</span>
                 </div>
                 <div>
-                  <h4 className={`text-lg font-medium mb-1 ${isDarkMode ? 'text-gray-200' : 'text-gray-800'}`}>Enter your name</h4>
-                  <p className={`${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
+                  <h4 className={`text-base font-bold mb-1 ${isDarkMode ? 'text-gray-200' : 'text-gray-800'}`}>Enter your name</h4>
+                  <p className={`text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
                     Type your name and confirm to begin tracking your heart metrics. This allows the system to save your data for future comparison.
                   </p>
                 </div>
@@ -277,11 +277,11 @@ export default function Home() {
               
               <div className="flex">
                 <div className={`flex-shrink-0 w-10 h-10 ${isDarkMode ? 'bg-amber-500/20' : 'bg-amber-500/10'} rounded-full flex items-center justify-center mr-4`}>
-                  <span className={`text-xl font-bold ${isDarkMode ? 'text-amber-400' : 'text-amber-500'}`}>2</span>
+                  <span className={`text-lg font-bold ${isDarkMode ? 'text-amber-400' : 'text-amber-500'}`}>2</span>
                 </div>
                 <div>
-                  <h4 className={`text-lg font-medium mb-1 ${isDarkMode ? 'text-gray-200' : 'text-gray-800'}`}>Cover the camera with your finger</h4>
-                  <p className={`${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
+                  <h4 className={`text-base font-bold mb-1 ${isDarkMode ? 'text-gray-200' : 'text-gray-800'}`}>Cover the camera with your finger</h4>
+                  <p className={`text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
                     Place any finger over your device&apos;s camera. Make sure your entire finger covers the lens completely for accurate readings.
                   </p>
                 </div>
@@ -289,11 +289,11 @@ export default function Home() {
               
               <div className="flex">
                 <div className={`flex-shrink-0 w-10 h-10 ${isDarkMode ? 'bg-amber-500/20' : 'bg-amber-500/10'} rounded-full flex items-center justify-center mr-4`}>
-                  <span className={`text-xl font-bold ${isDarkMode ? 'text-amber-400' : 'text-amber-500'}`}>3</span>
+                  <span className={`text-lg font-bold ${isDarkMode ? 'text-amber-400' : 'text-amber-500'}`}>3</span>
                 </div>
                 <div>
-                  <h4 className={`text-lg font-medium mb-1 ${isDarkMode ? 'text-gray-200' : 'text-gray-800'}`}>Press START RECORDING</h4>
-                  <p className={`${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
+                  <h4 className={`text-base font-bold mb-1 ${isDarkMode ? 'text-gray-200' : 'text-gray-800'}`}>Press START RECORDING</h4>
+                  <p className={`text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
                     Click &quot;START RECORDING&quot; to activate the camera. Then &quot;START SAMPLING&quot; will automatically send your PPG data to the database every 10 seconds.
                   </p>
                 </div>
@@ -301,11 +301,11 @@ export default function Home() {
               
               <div className="flex">
                 <div className={`flex-shrink-0 w-10 h-10 ${isDarkMode ? 'bg-amber-500/20' : 'bg-amber-500/10'} rounded-full flex items-center justify-center mr-4`}>
-                  <span className={`text-xl font-bold ${isDarkMode ? 'text-amber-400' : 'text-amber-500'}`}>4</span>
+                  <span className={`text-lg font-bold ${isDarkMode ? 'text-amber-400' : 'text-amber-500'}`}>4</span>
                 </div>
                 <div>
-                  <h4 className={`text-lg font-medium mb-1 ${isDarkMode ? 'text-gray-200' : 'text-gray-800'}`}>Stay still for best results</h4>
-                  <p className={`${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
+                  <h4 className={`text-base font-bold mb-1 ${isDarkMode ? 'text-gray-200' : 'text-gray-800'}`}>Stay still for best results</h4>
+                  <p className={`text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
                     Keep your finger steady on the camera. Any movement can disrupt the readings and reduce accuracy.
                   </p>
                 </div>
@@ -313,11 +313,11 @@ export default function Home() {
               
               <div className="flex">
                 <div className={`flex-shrink-0 w-10 h-10 ${isDarkMode ? 'bg-amber-500/20' : 'bg-amber-500/10'} rounded-full flex items-center justify-center mr-4`}>
-                  <span className={`text-xl font-bold ${isDarkMode ? 'text-amber-400' : 'text-amber-500'}`}>5</span>
+                  <span className={`text-lg font-bold ${isDarkMode ? 'text-amber-400' : 'text-amber-500'}`}>5</span>
                 </div>
                 <div>
-                  <h4 className={`text-lg font-medium mb-1 ${isDarkMode ? 'text-gray-200' : 'text-gray-800'}`}>Save your data</h4>
-                  <p className={`${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
+                  <h4 className={`text-base font-bold mb-1 ${isDarkMode ? 'text-gray-200' : 'text-gray-800'}`}>Save your data</h4>
+                  <p className={`text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
                     If you chose not to sample but still would like to save your data, press &quot;Save Data to MongoDB&quot; to manually save your current record.
                   </p>
                 </div>
