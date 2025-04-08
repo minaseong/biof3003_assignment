@@ -24,6 +24,7 @@ export default function Home() {
   const [showConfig, setShowConfig] = useState(false);
   const [currentSubject, setCurrentSubject] = useState('');
   const [confirmedSubject, setConfirmedSubject] = useState('');
+  const [isLoadingHistoricalData, setIsLoadingHistoricalData] = useState(false);
   const [historicalData, setHistoricalData] = useState<HistoricalData>({
     avgHeartRate: 0,
     avgHRV: 0,
@@ -51,6 +52,8 @@ export default function Home() {
     const fetchHistoricalData = async () => {
       if (!confirmedSubject) return;
       
+      setIsLoadingHistoricalData(true);
+      
       try {
         const response = await fetch(`/api/historical-data?subjectId=${confirmedSubject}`);
         const data = await response.json();
@@ -64,6 +67,8 @@ export default function Home() {
         }
       } catch (error) {
         console.error('Error fetching historical data:', error);
+      } finally {
+        setIsLoadingHistoricalData(false);
       }
     };
 
@@ -136,6 +141,14 @@ export default function Home() {
     
     if (ppgData.length === 0) {
       console.warn('No PPG data to send to MongoDB');
+      alert('Cannot send data to MongoDB: No PPG data available. Please start recording first.');
+      setIsUploading(false);
+      return;
+    }
+    
+    if (ppgData.length < 50) {
+      console.warn('Not enough PPG data points to send to MongoDB');
+      alert(`Cannot send data to MongoDB: Not enough PPG data (${ppgData.length} points). Please record for a longer duration.`);
       setIsUploading(false);
       return;
     }
@@ -273,44 +286,86 @@ export default function Home() {
                           </div>
                         </div>
                       </div>
-                      {historicalData.lastAccess && (
-                        <div className={`${isDarkMode ? 'bg-gray-800/80 border-gray-600' : 'bg-white/80 border-gray-100'} px-5 py-3 rounded-xl border text-right shadow-sm`}>
-                          <p className="text-sm font-medium text-cyan-500 mb-1">Last Session</p>
-                          <p className={`font-medium ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>{new Date(historicalData.lastAccess).toLocaleString('en-US', {
-                            month: 'short',
-                            day: 'numeric',
-                            hour: '2-digit',
-                            minute: '2-digit',
-                            hour12: true
-                          })}</p>
+                      {isLoadingHistoricalData ? (
+                        <div className={`${isDarkMode ? 'bg-gray-800/80 border-gray-600' : 'bg-white/80 border-gray-100'} px-5 py-3 rounded-xl border text-right shadow-sm min-w-[150px] h-16 flex items-center justify-center`}>
+                          <div className="flex items-center space-x-2">
+                            <div className={`w-4 h-4 rounded-full ${isDarkMode ? 'border-t-cyan-400' : 'border-t-cyan-600'} border-2 border-gray-200 animate-spin`}></div>
+                            <span className={`text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>Loading...</span>
+                          </div>
                         </div>
+                      ) : (
+                        historicalData.lastAccess && (
+                          <div className={`${isDarkMode ? 'bg-gray-800/80 border-gray-600' : 'bg-white/80 border-gray-100'} px-5 py-3 rounded-xl border text-right shadow-sm`}>
+                            <p className="text-sm font-medium text-cyan-500 mb-1">Last Session</p>
+                            <p className={`font-medium ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>{new Date(historicalData.lastAccess).toLocaleString('en-US', {
+                              month: 'short',
+                              day: 'numeric',
+                              hour: '2-digit',
+                              minute: '2-digit',
+                              hour12: true
+                            })}</p>
+                          </div>
+                        )
                       )}
                     </div>
                     <div className="grid grid-cols-2 gap-4">
-                      <div className={`${isDarkMode ? 'bg-gray-800/50 border-cyan-900/50' : 'bg-gradient-to-br from-cyan-50 via-cyan-100/30 to-cyan-50 border-cyan-100/50'} p-5 rounded-xl border shadow-sm`}>
-                        <div className="flex items-center space-x-2 mb-2">
-                          <svg className="w-5 h-5 text-cyan-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                          </svg>
-                          <p className={`text-sm font-medium ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>Average Heart Rate</p>
-                        </div>
-                        <p className={`text-3xl font-bold ${isDarkMode ? 'text-cyan-400' : 'text-cyan-700'}`}>
-                          {historicalData.avgHeartRate.toFixed(1)}
-                          <span className={`text-lg font-normal ${isDarkMode ? 'text-cyan-500' : 'text-cyan-600'} ml-1`}>BPM</span>
-                        </p>
-                      </div>
-                      <div className={`${isDarkMode ? 'bg-gray-800/50 border-emerald-900/50' : 'bg-gradient-to-br from-emerald-50 via-emerald-100/30 to-emerald-50 border-emerald-100/50'} p-5 rounded-xl border shadow-sm`}>
-                        <div className="flex items-center space-x-2 mb-2">
-                          <svg className="w-5 h-5 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
-                          </svg>
-                          <p className={`text-sm font-medium ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>Average HRV</p>
-                        </div>
-                        <p className={`text-3xl font-bold ${isDarkMode ? 'text-emerald-400' : 'text-emerald-700'}`}>
-                          {historicalData.avgHRV.toFixed(1)}
-                          <span className={`text-lg font-normal ${isDarkMode ? 'text-emerald-500' : 'text-emerald-600'} ml-1`}>ms</span>
-                        </p>
-                      </div>
+                      {isLoadingHistoricalData ? (
+                        <>
+                          <div className={`${isDarkMode ? 'bg-gray-800/50 border-cyan-900/50' : 'bg-gradient-to-br from-cyan-50 via-cyan-100/30 to-cyan-50 border-cyan-100/50'} p-5 rounded-xl border shadow-sm flex flex-col`}>
+                            <div className="flex items-center space-x-2 mb-2">
+                              <svg className="w-5 h-5 text-cyan-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                              </svg>
+                              <p className={`text-sm font-medium ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>Average Heart Rate</p>
+                            </div>
+                            <div className="flex-1 flex items-center justify-center">
+                              <div className="flex items-center space-x-2">
+                                <div className={`w-4 h-4 rounded-full ${isDarkMode ? 'border-t-cyan-400' : 'border-t-cyan-600'} border-2 border-gray-200 animate-spin`}></div>
+                              </div>
+                            </div>
+                          </div>
+                          <div className={`${isDarkMode ? 'bg-gray-800/50 border-emerald-900/50' : 'bg-gradient-to-br from-emerald-50 via-emerald-100/30 to-emerald-50 border-emerald-100/50'} p-5 rounded-xl border shadow-sm flex flex-col`}>
+                            <div className="flex items-center space-x-2 mb-2">
+                              <svg className="w-5 h-5 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                              </svg>
+                              <p className={`text-sm font-medium ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>Average HRV</p>
+                            </div>
+                            <div className="flex-1 flex items-center justify-center">
+                              <div className="flex items-center space-x-2">
+                                <div className={`w-4 h-4 rounded-full ${isDarkMode ? 'border-t-emerald-400' : 'border-t-emerald-600'} border-2 border-gray-200 animate-spin`}></div>
+                              </div>
+                            </div>
+                          </div>
+                        </>
+                      ) : (
+                        <>
+                          <div className={`${isDarkMode ? 'bg-gray-800/50 border-cyan-900/50' : 'bg-gradient-to-br from-cyan-50 via-cyan-100/30 to-cyan-50 border-cyan-100/50'} p-5 rounded-xl border shadow-sm`}>
+                            <div className="flex items-center space-x-2 mb-2">
+                              <svg className="w-5 h-5 text-cyan-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                              </svg>
+                              <p className={`text-sm font-medium ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>Average Heart Rate</p>
+                            </div>
+                            <p className={`text-3xl font-bold ${isDarkMode ? 'text-cyan-400' : 'text-cyan-700'}`}>
+                              {historicalData.avgHeartRate.toFixed(1)}
+                              <span className={`text-lg font-normal ${isDarkMode ? 'text-cyan-500' : 'text-cyan-600'} ml-1`}>BPM</span>
+                            </p>
+                          </div>
+                          <div className={`${isDarkMode ? 'bg-gray-800/50 border-emerald-900/50' : 'bg-gradient-to-br from-emerald-50 via-emerald-100/30 to-emerald-50 border-emerald-100/50'} p-5 rounded-xl border shadow-sm`}>
+                            <div className="flex items-center space-x-2 mb-2">
+                              <svg className="w-5 h-5 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                              </svg>
+                              <p className={`text-sm font-medium ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>Average HRV</p>
+                            </div>
+                            <p className={`text-3xl font-bold ${isDarkMode ? 'text-emerald-400' : 'text-emerald-700'}`}>
+                              {historicalData.avgHRV.toFixed(1)}
+                              <span className={`text-lg font-normal ${isDarkMode ? 'text-emerald-500' : 'text-emerald-600'} ml-1`}>ms</span>
+                            </p>
+                          </div>
+                        </>
+                      )}
                     </div>
                   </div>
                 )}
