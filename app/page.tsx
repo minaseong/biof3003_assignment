@@ -25,6 +25,7 @@ export default function Home() {
   const [currentSubject, setCurrentSubject] = useState('');
   const [confirmedSubject, setConfirmedSubject] = useState('');
   const [isLoadingHistoricalData, setIsLoadingHistoricalData] = useState(false);
+  const [showInstructions, setShowInstructions] = useState(false);
   const [historicalData, setHistoricalData] = useState<HistoricalData>({
     avgHeartRate: 0,
     avgHRV: 0,
@@ -240,12 +241,96 @@ export default function Home() {
         </div>
       </header>
 
+      {/* Instructions Modal */}
+      {showInstructions && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
+          <div className={`relative max-w-2xl w-full mx-4 ${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} rounded-xl p-6 border shadow-lg`}>
+            <button 
+              onClick={() => setShowInstructions(false)}
+              className="absolute top-4 right-4 text-gray-500 hover:text-gray-700"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+            
+            <h3 className={`text-2xl font-semibold mb-6 ${isDarkMode ? 'text-amber-400' : 'text-amber-600'}`}>How to Use HeartLens</h3>
+            
+            <div className="space-y-5">
+              <div className="flex">
+                <div className={`flex-shrink-0 w-10 h-10 ${isDarkMode ? 'bg-amber-500/20' : 'bg-amber-500/10'} rounded-full flex items-center justify-center mr-4`}>
+                  <span className={`text-xl font-bold ${isDarkMode ? 'text-amber-400' : 'text-amber-500'}`}>1</span>
+                </div>
+                <div>
+                  <h4 className={`text-lg font-medium mb-1 ${isDarkMode ? 'text-gray-200' : 'text-gray-800'}`}>Enter your name</h4>
+                  <p className={`${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
+                    Type your name and confirm to begin tracking your heart metrics. This allows the system to save your data for future comparison.
+                  </p>
+                </div>
+              </div>
+              
+              <div className="flex">
+                <div className={`flex-shrink-0 w-10 h-10 ${isDarkMode ? 'bg-amber-500/20' : 'bg-amber-500/10'} rounded-full flex items-center justify-center mr-4`}>
+                  <span className={`text-xl font-bold ${isDarkMode ? 'text-amber-400' : 'text-amber-500'}`}>2</span>
+                </div>
+                <div>
+                  <h4 className={`text-lg font-medium mb-1 ${isDarkMode ? 'text-gray-200' : 'text-gray-800'}`}>Cover the camera with your finger</h4>
+                  <p className={`${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
+                    Place any finger over your device&apos;s camera. Make sure your entire finger covers the lens completely for accurate readings.
+                  </p>
+                </div>
+              </div>
+              
+              <div className="flex">
+                <div className={`flex-shrink-0 w-10 h-10 ${isDarkMode ? 'bg-amber-500/20' : 'bg-amber-500/10'} rounded-full flex items-center justify-center mr-4`}>
+                  <span className={`text-xl font-bold ${isDarkMode ? 'text-amber-400' : 'text-amber-500'}`}>3</span>
+                </div>
+                <div>
+                  <h4 className={`text-lg font-medium mb-1 ${isDarkMode ? 'text-gray-200' : 'text-gray-800'}`}>Stay still for best results</h4>
+                  <p className={`${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
+                    Keep your finger steady on the camera. Any movement can disrupt the readings and reduce accuracy.
+                  </p>
+                </div>
+              </div>
+              
+              <div className={`mt-6 p-4 rounded-lg ${isDarkMode ? 'bg-gray-700' : 'bg-amber-50'}`}>
+                <div className={`flex items-center mb-2 ${isDarkMode ? 'text-amber-400' : 'text-amber-600'}`}>
+                  <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <span className="font-medium">Pro Tips:</span>
+                </div>
+                <ul className={`list-disc list-inside text-sm space-y-2 ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
+                  <li>Use consistent, moderate pressure on the camera lens</li>
+                  <li>Try different fingers if you&apos;re having trouble getting a clear signal</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       <main className="max-w-7xl mx-auto px-4 py-8">
         {/* User Panel - Moved to top */}
         <div className="mb-8">
           <div className={`${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-100'} rounded-xl shadow-sm p-8 border`}>
             <div className="max-w-3xl mx-auto">
-              <h2 className={`text-2xl font-semibold ${isDarkMode ? 'text-gray-200' : 'text-gray-800'} mb-6`}>Welcome to HeartLens</h2>
+              <div className="flex items-center justify-between mb-6">
+                <h2 className={`text-2xl font-semibold ${isDarkMode ? 'text-gray-200' : 'text-gray-800'}`}>Welcome to HeartLens</h2>
+                <button 
+                  onClick={() => setShowInstructions(true)}
+                  className={`flex items-center text-sm px-3 py-1.5 rounded-full ${
+                    isDarkMode 
+                      ? 'bg-amber-500/20 text-amber-300 hover:bg-amber-500/30' 
+                      : 'bg-amber-100 text-amber-700 hover:bg-amber-200'
+                  }`}
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1.5" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                  </svg>
+                  How to use
+                </button>
+              </div>
               <div className="space-y-6">
                 {!confirmedSubject ? (
                   <div className="flex space-x-3">
