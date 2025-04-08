@@ -21,9 +21,12 @@ The HeartLen App is a web-based tool designed to process photoplethysmography (P
 │   ├── api              # Backend API routes (e.g., save-record.ts)
 │   └── page.tsx         # Main page of the app
 ├── public               # Public assets (e.g., TensorFlow.js models)
-├── types                # TypeScript type definitions
+├── types.ts             # TypeScript type definitions
+├── lib                  # Handles previously repeated MongoDB database connection logic for better comprehensibility of api routes
+├── models               # Defines the MongoDB schema for the record data to be saved
 ├── README.md            # Project documentation
 └── package.json         # Project dependencies and scripts
+
 ~~~
 
 ---
