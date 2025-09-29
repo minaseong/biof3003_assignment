@@ -96,5 +96,4 @@ RecordSchema.index({ subjectId: 1, timestamp: -1 });
 // Use an existing model if available or compile a new one
 const Record = mongoose.models.Record || mongoose.model<IRecord>('Record', RecordSchema);
 
-export default Record;
-export type { IRecord, ICreateRecord, IRecordAggregation }; 
+export default Record; 
