@@ -22,7 +22,7 @@ export async function GET(request: Request) {
         const lastRecord = await Record.findOne({ subjectId })
             .sort({ timestamp: -1 })
             .select('timestamp')
-            .lean();
+            .lean() as { timestamp: Date } | null;
 
         if (!lastRecord) {
             return NextResponse.json(
