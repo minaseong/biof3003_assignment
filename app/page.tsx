@@ -5,6 +5,7 @@ import CameraFeed from './components/CameraFeed';
 import MetricsCard from './components/MetricsCard';
 import SignalCombinationSelector from './components/SignalCombinationSelector';
 import ChartComponent from './components/ChartComponent';
+import UserPanel from './components/UserPanel';
 import usePPGProcessing from './hooks/usePPGProcessing';
 import useSignalQuality from './hooks/useSignalQuality';
 
@@ -83,6 +84,21 @@ export default function Home() {
     } else {
       alert('Please enter a valid Subject ID.');
     }
+  };
+
+  // Logout Function
+  const logout = () => {
+    setConfirmedSubject('');
+    setCurrentSubject('');
+    setHistoricalData({
+      avgHeartRate: 0,
+      avgHRV: 0,
+      lastAccess: null
+    });
+    setIsRecording(false);
+    setIsSampling(false);
+    setIsUploading(false);
+    setUploadSuccess(false);
   };
 
   // Start or stop recording
@@ -355,153 +371,20 @@ export default function Home() {
       )}
 
       <main className="max-w-7xl mx-auto px-4 py-8">
-        {/* User Panel - Moved to top */}
-        <div className="mb-8">
-          <div className={`${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-100'} rounded-xl shadow-sm p-8 border`}>
-            <div className="max-w-3xl mx-auto">
-              <div className="flex items-center justify-between mb-6">
-                <h2 className={`text-2xl font-semibold ${isDarkMode ? 'text-gray-200' : 'text-gray-800'}`}>Welcome to HeartLens</h2>
-                <button 
-                  onClick={() => setShowInstructions(true)}
-                  className={`flex items-center text-sm px-3 py-1.5 rounded-full ${
-                    isDarkMode 
-                      ? 'bg-amber-500/20 text-amber-300 hover:bg-amber-500/30' 
-                      : 'bg-amber-100 text-amber-700 hover:bg-amber-200'
-                  }`}
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1.5" viewBox="0 0 20 20" fill="currentColor">
-                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
-                  </svg>
-                  How to use
-                </button>
-              </div>
-              <div className="space-y-6">
-                {!confirmedSubject ? (
-                  <div className="flex space-x-3">
-                    <input
-                      type="text"
-                      value={currentSubject}
-                      onChange={(e) => setCurrentSubject(e.target.value)}
-                      placeholder="Tell us your name"
-                      className={`flex-1 border ${
-                        isDarkMode 
-                          ? 'border-gray-700 bg-gray-700/50 text-gray-200 focus:border-cyan-500' 
-                          : 'border-gray-200 bg-white/80 text-gray-700 focus:border-cyan-400'
-                      } rounded-xl px-6 py-3 backdrop-blur-sm focus:ring-1 focus:ring-cyan-400 text-lg`}
-                    />
-                    <button
-                      onClick={confirmUser}
-                      className={`${
-                        isDarkMode 
-                          ? 'bg-cyan-600 hover:bg-cyan-700' 
-                          : 'bg-cyan-500 hover:bg-cyan-600'
-                      } text-white px-8 py-3 rounded-xl transition-all duration-300 text-lg font-medium shadow-sm hover:shadow`}
-                    >
-                      Confirm User
-                    </button>
-                  </div>
-                ) : (
-                  <div className={`${isDarkMode ? 'bg-gray-700 border-gray-600' : 'bg-gradient-to-br from-gray-50 to-white border-gray-100'} rounded-xl p-6 border`}>
-                    <div className="flex items-center justify-between mb-6">
-                      <div className="flex items-center space-x-4">
-                        <div className="w-14 h-14 bg-gradient-to-br from-cyan-400 via-cyan-500 to-emerald-400 rounded-xl flex items-center justify-center shadow-md ring-2 ring-white">
-                          <span className="text-white text-2xl font-bold">{confirmedSubject.charAt(0).toUpperCase()}</span>
-                        </div>
-                        <div className="space-y-1">
-                          <h3 className={`text-xl font-semibold ${isDarkMode ? 'text-gray-100' : 'text-gray-800'}`}>Welcome!</h3>
-                          <div className="flex items-center space-x-2">
-                            <div className="w-2 h-2 bg-emerald-400 rounded-full"></div>
-                            <p className={`${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>Logged in as <span className={`font-medium ${isDarkMode ? 'text-gray-100' : 'text-gray-800'}`}>{confirmedSubject}</span></p>
-                          </div>
-                        </div>
-                      </div>
-                      {isLoadingHistoricalData ? (
-                        <div className={`${isDarkMode ? 'bg-gray-800/80 border-gray-600' : 'bg-white/80 border-gray-100'} px-5 py-3 rounded-xl border text-right shadow-sm min-w-[150px] h-16 flex items-center justify-center`}>
-                          <div className="flex items-center space-x-2">
-                            <div className={`w-4 h-4 rounded-full ${isDarkMode ? 'border-t-cyan-400' : 'border-t-cyan-600'} border-2 border-gray-200 animate-spin`}></div>
-                            <span className={`text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>Loading...</span>
-                          </div>
-                        </div>
-                      ) : (
-                        historicalData.lastAccess && (
-                          <div className={`${isDarkMode ? 'bg-gray-800/80 border-gray-600' : 'bg-white/80 border-gray-100'} px-5 py-3 rounded-xl border text-right shadow-sm`}>
-                            <p className="text-sm font-medium text-cyan-500 mb-1">Last Session</p>
-                            <p className={`font-medium ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>{new Date(historicalData.lastAccess).toLocaleString('en-US', {
-                              month: 'short',
-                              day: 'numeric',
-                              hour: '2-digit',
-                              minute: '2-digit',
-                              hour12: true
-                            })}</p>
-                          </div>
-                        )
-                      )}
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
-                      {isLoadingHistoricalData ? (
-                        <>
-                          <div className={`${isDarkMode ? 'bg-gray-800/50 border-cyan-900/50' : 'bg-gradient-to-br from-cyan-50 via-cyan-100/30 to-cyan-50 border-cyan-100/50'} p-5 rounded-xl border shadow-sm flex flex-col`}>
-                            <div className="flex items-center space-x-2 mb-2">
-                              <svg className="w-5 h-5 text-cyan-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                              </svg>
-                              <p className={`text-sm font-medium ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>Average Heart Rate</p>
-                            </div>
-                            <div className="flex-1 flex items-center justify-center">
-                              <div className="flex items-center space-x-2">
-                                <div className={`w-4 h-4 rounded-full ${isDarkMode ? 'border-t-cyan-400' : 'border-t-cyan-600'} border-2 border-gray-200 animate-spin`}></div>
-                              </div>
-                            </div>
-                          </div>
-                          <div className={`${isDarkMode ? 'bg-gray-800/50 border-emerald-900/50' : 'bg-gradient-to-br from-emerald-50 via-emerald-100/30 to-emerald-50 border-emerald-100/50'} p-5 rounded-xl border shadow-sm flex flex-col`}>
-                            <div className="flex items-center space-x-2 mb-2">
-                              <svg className="w-5 h-5 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
-                              </svg>
-                              <p className={`text-sm font-medium ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>Average HRV</p>
-                            </div>
-                            <div className="flex-1 flex items-center justify-center">
-                              <div className="flex items-center space-x-2">
-                                <div className={`w-4 h-4 rounded-full ${isDarkMode ? 'border-t-emerald-400' : 'border-t-emerald-600'} border-2 border-gray-200 animate-spin`}></div>
-                              </div>
-                            </div>
-                          </div>
-                        </>
-                      ) : (
-                        <>
-                          <div className={`${isDarkMode ? 'bg-gray-800/50 border-cyan-900/50' : 'bg-gradient-to-br from-cyan-50 via-cyan-100/30 to-cyan-50 border-cyan-100/50'} p-5 rounded-xl border shadow-sm`}>
-                            <div className="flex items-center space-x-2 mb-2">
-                              <svg className="w-5 h-5 text-cyan-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                              </svg>
-                              <p className={`text-sm font-medium ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>Average Heart Rate</p>
-                            </div>
-                            <p className={`text-3xl font-bold ${isDarkMode ? 'text-cyan-400' : 'text-cyan-700'}`}>
-                              {historicalData.avgHeartRate.toFixed(1)}
-                              <span className={`text-lg font-normal ${isDarkMode ? 'text-cyan-500' : 'text-cyan-600'} ml-1`}>BPM</span>
-                            </p>
-                          </div>
-                          <div className={`${isDarkMode ? 'bg-gray-800/50 border-emerald-900/50' : 'bg-gradient-to-br from-emerald-50 via-emerald-100/30 to-emerald-50 border-emerald-100/50'} p-5 rounded-xl border shadow-sm`}>
-                            <div className="flex items-center space-x-2 mb-2">
-                              <svg className="w-5 h-5 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
-                              </svg>
-                              <p className={`text-sm font-medium ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>Average HRV</p>
-                            </div>
-                            <p className={`text-3xl font-bold ${isDarkMode ? 'text-emerald-400' : 'text-emerald-700'}`}>
-                              {historicalData.avgHRV.toFixed(1)}
-                              <span className={`text-lg font-normal ${isDarkMode ? 'text-emerald-500' : 'text-emerald-600'} ml-1`}>ms</span>
-                            </p>
-                          </div>
-                        </>
-                      )}
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
+        {/* User Panel Component */}
+        <UserPanel
+          isDarkMode={isDarkMode}
+          currentSubject={currentSubject}
+          setCurrentSubject={setCurrentSubject}
+          confirmedSubject={confirmedSubject}
+          setConfirmedSubject={setConfirmedSubject}
+          historicalData={historicalData}
+          isLoadingHistoricalData={isLoadingHistoricalData}
+          showInstructions={showInstructions}
+          setShowInstructions={setShowInstructions}
+          onConfirmUser={confirmUser}
+          onLogout={logout}
+        />
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Left Column: Camera Feed and Controls */}

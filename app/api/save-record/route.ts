@@ -1,51 +1,7 @@
 // app/api/save-record/route.ts
 import { NextResponse } from 'next/server';
-import mongoose from 'mongoose';
-
-const MONGODB_URI = process.env.MONGODB_URI as string;
-if (!MONGODB_URI) {
-  throw new Error(
-    'Please define the MONGODB_URI environment variable in .env.local'
-  );
-}
-
-// Cache to reuse an existing connection
-let cached = (global as any).mongoose;
-if (!cached) {
-  cached = (global as any).mongoose = { conn: null, promise: null };
-}
-
-async function dbConnect() {
-  if (cached.conn) {
-    return cached.conn;
-  }
-  if (!cached.promise) {
-    const opts = { bufferCommands: false };
-    cached.promise = mongoose
-      .connect(MONGODB_URI, opts)
-      .then((mongoose) => mongoose);
-  }
-  cached.conn = await cached.promise;
-  return cached.conn;
-}
-
-// Define the schema with an extra field for ppgData
-const RecordSchema = new mongoose.Schema({
-  subjectId: { type: String, required: true },
-  heartRate: {
-    bpm: { type: Number, required: true },
-    confidence: { type: Number, required: true },
-  },
-  hrv: {
-    sdnn: { type: Number, required: true },
-    confidence: { type: Number, required: true },
-  },
-  ppgData: { type: [Number], required: true },
-  timestamp: { type: Date, default: Date.now },
-});
-
-// Use an existing model if available or compile a new one
-const Record = mongoose.models.Record || mongoose.model('Record', RecordSchema);
+import dbConnect from '@/lib/dbConnect';
+import Record from '@/models/Record';
 
 /**
  * API route for saving PPG data records to MongoDB
